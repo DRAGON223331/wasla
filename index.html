@@ -152,168 +152,291 @@ body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);trans
 <!-- ============================
      INTRO SCREEN
      ============================ -->
-<div id="intro-screen" style="position:fixed;inset:0;z-index:99999;background:#0a0a0f;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden">
-  <!-- Particles canvas -->
+<!-- INTRO SCREEN -->
+<div id="intro-screen" style="position:fixed;inset:0;z-index:99999;background:#05050d;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden">
+
+  <!-- Main canvas: particles + meteor trails + aurora -->
   <canvas id="intro-canvas" style="position:absolute;inset:0;width:100%;height:100%"></canvas>
 
+  <!-- Soft aurora blobs -->
+  <div style="position:absolute;inset:0;pointer-events:none;overflow:hidden">
+    <div id="aurora1" style="position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(124,92,252,0.18) 0%,transparent 70%);top:-100px;left:-150px;filter:blur(60px)"></div>
+    <div id="aurora2" style="position:absolute;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(255,140,66,0.12) 0%,transparent 70%);bottom:-80px;right:-100px;filter:blur(60px)"></div>
+    <div id="aurora3" style="position:absolute;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(45,212,160,0.08) 0%,transparent 70%);top:40%;left:60%;filter:blur(50px)"></div>
+  </div>
+
   <!-- Glow rings -->
-  <div id="intro-ring1" style="position:absolute;width:320px;height:320px;border-radius:50%;border:1px solid rgba(124,92,252,0.15);opacity:0;transform:scale(0.5)"></div>
-  <div id="intro-ring2" style="position:absolute;width:480px;height:480px;border-radius:50%;border:1px solid rgba(124,92,252,0.08);opacity:0;transform:scale(0.5)"></div>
-  <div id="intro-ring3" style="position:absolute;width:640px;height:640px;border-radius:50%;border:1px solid rgba(124,92,252,0.04);opacity:0;transform:scale(0.5)"></div>
+  <div id="intro-ring1" style="position:absolute;width:300px;height:300px;border-radius:50%;border:1px solid rgba(124,92,252,0.2);opacity:0;transform:scale(0.3)"></div>
+  <div id="intro-ring2" style="position:absolute;width:460px;height:460px;border-radius:50%;border:1px solid rgba(124,92,252,0.1);opacity:0;transform:scale(0.3)"></div>
+  <div id="intro-ring3" style="position:absolute;width:620px;height:620px;border-radius:50%;border:1px solid rgba(255,140,66,0.06);opacity:0;transform:scale(0.3)"></div>
+
+  <!-- Grid overlay -->
+  <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(124,92,252,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(124,92,252,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none"></div>
 
   <!-- Center content -->
-  <div id="intro-content" style="position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:24px;opacity:0;transform:translateY(30px)">
+  <div id="intro-content" style="position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:20px;opacity:0;transform:translateY(40px)">
 
-    <!-- Logo with glow -->
-    <div id="intro-logo-wrap" style="position:relative;width:100px;height:100px;display:flex;align-items:center;justify-content:center">
-      <div id="intro-glow" style="position:absolute;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(124,92,252,0.5) 0%,transparent 70%);filter:blur(20px);opacity:0"></div>
-      <img src="data:image/png;base64,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" id="intro-logo" style="width:90px;height:90px;object-fit:contain;position:relative;z-index:1;filter:drop-shadow(0 0 20px rgba(124,92,252,0.8))">
+    <!-- Logo -->
+    <div style="position:relative;width:110px;height:110px;display:flex;align-items:center;justify-content:center">
+      <div id="intro-glow" style="position:absolute;width:140px;height:140px;border-radius:50%;background:radial-gradient(circle,rgba(124,92,252,0.6) 0%,transparent 70%);filter:blur(24px);opacity:0"></div>
+      <div id="intro-glow2" style="position:absolute;width:100px;height:100px;border-radius:50%;background:radial-gradient(circle,rgba(255,140,66,0.3) 0%,transparent 70%);filter:blur(16px);opacity:0"></div>
+      <img src="data:image/png;base64,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" id="intro-logo" style="width:100px;height:100px;object-fit:contain;position:relative;z-index:1;filter:drop-shadow(0 0 24px rgba(124,92,252,0.9))">
     </div>
 
     <!-- Brand name -->
     <div style="text-align:center">
-      <div id="intro-title-en" style="font-family:'Syne',sans-serif;font-size:42px;font-weight:900;background:linear-gradient(135deg,#9d7ffe,#ff8c42);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:2px;clip-path:inset(0 100% 0 0);transition:clip-path 0.8s cubic-bezier(0.77,0,0.175,1)">Wasla</div>
-      <div id="intro-title-ar" style="font-family:'Cairo',sans-serif;font-size:24px;font-weight:800;background:linear-gradient(135deg,#9d7ffe,#ff8c42);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-top:4px;clip-path:inset(0 100% 0 0);transition:clip-path 0.8s cubic-bezier(0.77,0,0.175,1) 0.2s">وصلة</div>
+      <div id="intro-title-en" style="font-family:'Syne',sans-serif;font-size:46px;font-weight:900;background:linear-gradient(135deg,#c4affe,#ff8c42);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:4px;clip-path:inset(0 100% 0 0);transition:clip-path 1s cubic-bezier(0.77,0,0.175,1)">Wasla</div>
+      <div id="intro-title-ar" style="font-family:'Cairo',sans-serif;font-size:22px;font-weight:800;background:linear-gradient(135deg,#c4affe,#ff8c42);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-top:2px;clip-path:inset(0 100% 0 0);transition:clip-path 1s cubic-bezier(0.77,0,0.175,1) 0.25s">وصلة</div>
     </div>
+
+    <!-- Divider -->
+    <div id="intro-divider" style="width:0px;height:1px;background:linear-gradient(90deg,transparent,rgba(124,92,252,0.6),transparent);transition:width 1s ease 1s"></div>
 
     <!-- Tagline -->
-    <div id="intro-tagline" style="font-family:'Cairo',sans-serif;font-size:14px;color:rgba(255,255,255,0.4);letter-spacing:3px;text-transform:uppercase;opacity:0;transform:translateY(10px);transition:all 0.6s ease 0.8s">ابقَ على تواصل</div>
+    <div id="intro-tagline" style="font-family:'Cairo',sans-serif;font-size:15px;color:rgba(255,255,255,0.5);letter-spacing:2px;opacity:0;transform:translateY(12px);transition:all 0.6s ease;min-height:24px;text-align:center"></div>
 
     <!-- Loading bar -->
-    <div style="width:200px;height:2px;background:rgba(255,255,255,0.08);border-radius:99px;overflow:hidden;margin-top:8px">
-      <div id="intro-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#7c5cfc,#ff8c42);border-radius:99px;transition:width 0.1s linear"></div>
+    <div style="width:220px;height:2px;background:rgba(255,255,255,0.06);border-radius:99px;overflow:hidden;margin-top:12px">
+      <div id="intro-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#7c5cfc,#c4affe,#ff8c42);border-radius:99px;transition:width 0.15s linear"></div>
     </div>
+    <div id="intro-pct" style="font-family:'Syne',sans-serif;font-size:11px;color:rgba(255,255,255,0.2);letter-spacing:2px;margin-top:-8px">0%</div>
   </div>
 </div>
 
 <style>
 @keyframes intro-ring-pulse {
-  0%,100% { transform:scale(1); opacity:0.6; }
-  50% { transform:scale(1.04); opacity:1; }
+  0%,100% { transform:scale(1); opacity:0.7; }
+  50%      { transform:scale(1.05); opacity:1; }
 }
 @keyframes intro-logo-float {
-  0%,100% { transform:translateY(0px); }
-  50% { transform:translateY(-8px); }
+  0%,100% { transform:translateY(0px) rotate(0deg); }
+  50%      { transform:translateY(-10px) rotate(2deg); }
 }
-#intro-logo { animation: intro-logo-float 3s ease-in-out infinite; }
+@keyframes aurora-drift1 {
+  0%,100% { transform:translate(0,0) scale(1); }
+  33%     { transform:translate(60px,-40px) scale(1.1); }
+  66%     { transform:translate(-30px,50px) scale(0.95); }
+}
+@keyframes aurora-drift2 {
+  0%,100% { transform:translate(0,0) scale(1); }
+  33%     { transform:translate(-50px,30px) scale(1.08); }
+  66%     { transform:translate(40px,-60px) scale(1.02); }
+}
+@keyframes aurora-drift3 {
+  0%,100% { transform:translate(0,0) scale(1); }
+  50%     { transform:translate(-40px,-30px) scale(1.12); }
+}
+#intro-logo { animation: intro-logo-float 3.5s ease-in-out infinite; }
+#aurora1 { animation: aurora-drift1 8s ease-in-out infinite; }
+#aurora2 { animation: aurora-drift2 10s ease-in-out infinite; }
+#aurora3 { animation: aurora-drift3 7s ease-in-out infinite; }
 </style>
 
 <script>
 (function(){
-  // Particle system
   const canvas = document.getElementById('intro-canvas');
-  const ctx = canvas.getContext('2d');
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+  const ctx    = canvas.getContext('2d');
+  let W = canvas.width  = window.innerWidth;
+  let H = canvas.height = window.innerHeight;
+  window.addEventListener('resize', ()=>{ W=canvas.width=window.innerWidth; H=canvas.height=window.innerHeight; });
 
-  const particles = Array.from({length:60}, () => ({
-    x: Math.random()*canvas.width,
-    y: Math.random()*canvas.height,
-    r: Math.random()*1.5+0.3,
-    vx: (Math.random()-0.5)*0.4,
-    vy: (Math.random()-0.5)*0.4,
-    alpha: Math.random()*0.5+0.1,
-    color: Math.random()>0.5 ? '124,92,252' : '255,140,66'
+  // ── Floating particles
+  const particles = Array.from({length:80}, () => ({
+    x:Math.random()*W, y:Math.random()*H,
+    r:Math.random()*1.8+0.2,
+    vx:(Math.random()-0.5)*0.35, vy:(Math.random()-0.5)*0.35,
+    alpha:Math.random()*0.45+0.08,
+    pulse:Math.random()*Math.PI*2,
+    color: ['124,92,252','255,140,66','45,212,160','157,127,254'][Math.floor(Math.random()*4)]
+  }));
+
+  // ── Meteor showers
+  const meteors = [];
+  function spawnMeteor(){
+    meteors.push({
+      x: Math.random()*W*1.5,
+      y: -20,
+      len: 80+Math.random()*120,
+      speed: 6+Math.random()*8,
+      alpha: 0.6+Math.random()*0.4,
+      angle: Math.PI/4 + (Math.random()-0.5)*0.3,
+      life: 1
+    });
+  }
+  setInterval(spawnMeteor, 900);
+
+  // ── Hexagon grid nodes
+  const nodes = Array.from({length:12}, (_, i) => ({
+    x: (i%4)*W/3.5 + W/7,
+    y: Math.floor(i/4)*H/2.5 + H/5,
+    pulse: Math.random()*Math.PI*2,
+    r: 1.5+Math.random()*1.5
   }));
 
   let animFrame;
-  function drawParticles(){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    const t = Date.now()/1000;
+
+    // Particles
     particles.forEach(p=>{
-      p.x += p.vx; p.y += p.vy;
-      if(p.x<0||p.x>canvas.width) p.vx*=-1;
-      if(p.y<0||p.y>canvas.height) p.vy*=-1;
+      p.x+=p.vx; p.y+=p.vy;
+      if(p.x<0||p.x>W) p.vx*=-1;
+      if(p.y<0||p.y>H) p.vy*=-1;
+      p.pulse+=0.02;
+      const a = p.alpha*(0.6+0.4*Math.sin(p.pulse));
       ctx.beginPath();
       ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-      ctx.fillStyle=`rgba(${p.color},${p.alpha})`;
+      ctx.fillStyle=`rgba(${p.color},${a})`;
       ctx.fill();
     });
-    animFrame=requestAnimationFrame(drawParticles);
+
+    // Hex node connections
+    ctx.lineWidth=0.4;
+    for(let i=0;i<nodes.length;i++){
+      for(let j=i+1;j<nodes.length;j++){
+        const dx=nodes[i].x-nodes[j].x, dy=nodes[i].y-nodes[j].y;
+        const d=Math.sqrt(dx*dx+dy*dy);
+        if(d<W/3.5){
+          const a=0.08*(1-d/(W/3.5));
+          ctx.strokeStyle=`rgba(124,92,252,${a})`;
+          ctx.beginPath(); ctx.moveTo(nodes[i].x,nodes[i].y); ctx.lineTo(nodes[j].x,nodes[j].y); ctx.stroke();
+        }
+      }
+      nodes[i].pulse+=0.015;
+      const pr=nodes[i].r*(0.7+0.5*Math.sin(nodes[i].pulse));
+      ctx.beginPath(); ctx.arc(nodes[i].x,nodes[i].y,pr,0,Math.PI*2);
+      ctx.fillStyle='rgba(124,92,252,0.35)'; ctx.fill();
+    }
+
+    // Meteors
+    for(let i=meteors.length-1;i>=0;i--){
+      const m=meteors[i];
+      m.x+=Math.cos(m.angle)*m.speed;
+      m.y+=Math.sin(m.angle)*m.speed;
+      m.life-=0.018;
+      if(m.life<=0||m.x>W+100||m.y>H+100){ meteors.splice(i,1); continue; }
+      const tailX=m.x-Math.cos(m.angle)*m.len;
+      const tailY=m.y-Math.sin(m.angle)*m.len;
+      const grad=ctx.createLinearGradient(tailX,tailY,m.x,m.y);
+      grad.addColorStop(0,'rgba(255,255,255,0)');
+      grad.addColorStop(0.6,`rgba(180,150,255,${m.alpha*m.life*0.4})`);
+      grad.addColorStop(1,`rgba(255,255,255,${m.alpha*m.life})`);
+      ctx.lineWidth=1.5;
+      ctx.strokeStyle=grad;
+      ctx.beginPath(); ctx.moveTo(tailX,tailY); ctx.lineTo(m.x,m.y); ctx.stroke();
+      // spark at tip
+      ctx.beginPath(); ctx.arc(m.x,m.y,1.5,0,Math.PI*2);
+      ctx.fillStyle=`rgba(255,255,255,${m.alpha*m.life})`; ctx.fill();
+    }
+
+    animFrame=requestAnimationFrame(draw);
   }
-  drawParticles();
+  draw();
 
-  // Animation timeline
-  const content = document.getElementById('intro-content');
-  const ring1   = document.getElementById('intro-ring1');
-  const ring2   = document.getElementById('intro-ring2');
-  const ring3   = document.getElementById('intro-ring3');
-  const glow    = document.getElementById('intro-glow');
-  const titleEn = document.getElementById('intro-title-en');
-  const titleAr = document.getElementById('intro-title-ar');
-  const tagline = document.getElementById('intro-tagline');
-  const bar     = document.getElementById('intro-bar');
+  // ── DOM refs
+  const content  = document.getElementById('intro-content');
+  const ring1    = document.getElementById('intro-ring1');
+  const ring2    = document.getElementById('intro-ring2');
+  const ring3    = document.getElementById('intro-ring3');
+  const glow     = document.getElementById('intro-glow');
+  const glow2    = document.getElementById('intro-glow2');
+  const titleEn  = document.getElementById('intro-title-en');
+  const titleAr  = document.getElementById('intro-title-ar');
+  const tagline  = document.getElementById('intro-tagline');
+  const bar      = document.getElementById('intro-bar');
+  const pct      = document.getElementById('intro-pct');
+  const divider  = document.getElementById('intro-divider');
 
-  // Step 1: fade in content (300ms)
+  // Step 1 — content fade in
   setTimeout(()=>{
-    content.style.transition='opacity 0.6s ease, transform 0.6s ease';
-    content.style.opacity='1';
-    content.style.transform='translateY(0)';
-  }, 300);
+    content.style.transition='opacity 0.7s ease, transform 0.7s ease';
+    content.style.opacity='1'; content.style.transform='translateY(0)';
+  }, 250);
 
-  // Step 2: rings expand (600ms)
+  // Step 2 — rings + glow
   setTimeout(()=>{
     [ring1,ring2,ring3].forEach((r,i)=>{
-      r.style.transition=`opacity 0.8s ease ${i*150}ms, transform 0.8s cubic-bezier(0.34,1.56,0.64,1) ${i*150}ms`;
+      r.style.transition=`opacity 0.9s ease ${i*180}ms, transform 1s cubic-bezier(0.34,1.56,0.64,1) ${i*180}ms`;
       r.style.opacity='1'; r.style.transform='scale(1)';
     });
-    glow.style.transition='opacity 0.8s ease';
-    glow.style.opacity='1';
-  }, 600);
+    glow.style.transition='opacity 1s ease';  glow.style.opacity='1';
+    glow2.style.transition='opacity 1s ease 0.4s'; glow2.style.opacity='1';
+  }, 550);
 
-  // Step 3: text reveal (800ms)
+  // Step 3 — text reveal
   setTimeout(()=>{
     titleEn.style.clipPath='inset(0 0% 0 0)';
     titleAr.style.clipPath='inset(0 0% 0 0)';
-  }, 800);
+    divider.style.width='180px';
+  }, 750);
 
-  // Step 4: tagline (1000ms)
+  // Step 4 — taglines
+  const taglines = [
+    'ابقَ على تواصل 🌍',
+    'صُنع في مصر 🇪🇬',
+    'شارك لحظاتك ✨',
+    'وصلة تجمعنا 🤝',
+    'اكتشف عالمك 🚀',
+    'دردش بحرية 💬',
+    'كن مسموعاً 🎙️',
+    'محتوى بلا حدود 🔥',
+    'ابدأ قصتك هنا 📖',
+  ];
+  let taglineIdx = Math.floor(Math.random()*taglines.length);
+
+  function showTagline(){
+    tagline.textContent = taglines[taglineIdx];
+    tagline.style.transition='opacity 0.5s ease, transform 0.5s ease';
+    tagline.style.opacity='1'; tagline.style.transform='translateY(0)';
+  }
+  function nextTagline(){
+    tagline.style.opacity='0'; tagline.style.transform='translateY(-10px)';
+    setTimeout(()=>{
+      taglineIdx=(taglineIdx+1)%taglines.length;
+      tagline.textContent=taglines[taglineIdx];
+      tagline.style.transform='translateY(10px)';
+      setTimeout(()=>{ showTagline(); },40);
+    },450);
+  }
+  setTimeout(()=>{ showTagline(); setInterval(nextTagline, 2000); }, 1100);
+
+  // Step 5 — rings pulse
   setTimeout(()=>{
-    tagline.style.opacity='1';
-    tagline.style.transform='translateY(0)';
-  }, 1000);
+    ring1.style.animation='intro-ring-pulse 2.5s ease-in-out infinite';
+    ring2.style.animation='intro-ring-pulse 2.5s ease-in-out infinite 0.4s';
+    ring3.style.animation='intro-ring-pulse 2.5s ease-in-out infinite 0.8s';
+  }, 1500);
 
-  // Step 5: rings pulse animation
-  setTimeout(()=>{
-    ring1.style.animation='intro-ring-pulse 2s ease-in-out infinite';
-    ring2.style.animation='intro-ring-pulse 2s ease-in-out infinite 0.3s';
-    ring3.style.animation='intro-ring-pulse 2s ease-in-out infinite 0.6s';
-  }, 1400);
-
-  // Loading bar progress
+  // Loading bar — fill over 9s smoothly to 95%, then to 100% on dismiss
   let progress=0;
+  const totalMs=9000;
   const barInterval=setInterval(()=>{
-    progress = Math.min(progress + Math.random()*8+2, 95);
+    progress=Math.min(progress+(100/totalMs)*150*(0.8+Math.random()*0.4), 95);
     bar.style.width=progress+'%';
+    pct.textContent=Math.floor(progress)+'%';
     if(progress>=95) clearInterval(barInterval);
-  }, 120);
+  }, 150);
 
-  // Two conditions must BOTH be true before dismissing:
-  // 1. Minimum 3.5s has passed
-  // 2. Firebase auth is ready
-  let _timerDone = false;
-  let _authDone = false;
-
+  // Dismiss logic — BOTH timer AND auth must be ready
+  let _timerDone=false, _authDone=false;
   function _tryDismiss(){
-    if(!_timerDone || !_authDone) return;
+    if(!_timerDone||!_authDone) return;
     clearInterval(barInterval);
-    bar.style.width='100%';
-    bar.style.transition='width 0.3s ease';
+    bar.style.width='100%'; bar.style.transition='width 0.4s ease';
+    pct.textContent='100%';
     setTimeout(()=>{
       cancelAnimationFrame(animFrame);
       const screen=document.getElementById('intro-screen');
       if(!screen) return;
-      screen.style.transition='opacity 0.7s ease, transform 0.7s ease';
-      screen.style.opacity='0';
-      screen.style.transform='scale(1.05)';
-      setTimeout(()=>{ screen.remove(); }, 750);
-    }, 350);
+      screen.style.transition='opacity 0.8s ease, transform 0.8s ease';
+      screen.style.opacity='0'; screen.style.transform='scale(1.04)';
+      setTimeout(()=>{ screen.remove(); },850);
+    },450);
   }
 
-  // Timer: always wait at least 3.5s
-  setTimeout(()=>{ _timerDone=true; _tryDismiss(); }, 3500);
-
-  // Called by Firebase when auth is ready
-  window._introReady = function(){ _authDone=true; _tryDismiss(); };
+  setTimeout(()=>{ _timerDone=true; _tryDismiss(); }, 10000);
+  window._introReady=function(){ _authDone=true; _tryDismiss(); };
 })();
 </script>
 
