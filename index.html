@@ -632,6 +632,7 @@ async function doSearch(){
 // ============================
 async function viewProfile(uid){
   if(uid===S.currentUser?.uid){nav('profile');return;}
+  S.prevPage=S.page; // احفظ الصفحة السابقة للرجوع
   S.page='viewprofile';
   S.viewingProfile=null;
   S.viewingProfilePosts=[];
@@ -1042,7 +1043,7 @@ function buildProfileLayout(p, uid, posts, isMyProfile){
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:18px;margin-bottom:16px;overflow:hidden">
       <div style="height:180px;${coverStyle};position:relative">
         ${isMyProfile?`<button onclick="uploadCoverPhoto()" style="position:absolute;top:10px;left:10px;background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:10px;padding:5px 12px;font-size:12px;cursor:pointer;font-family:'Cairo',sans-serif;font-weight:700">📷 تغيير الغلاف</button>`:''}
-        ${!isMyProfile?`<button class="btn-outline" style="position:absolute;top:12px;left:12px;font-size:12px;padding:5px 12px;background:rgba(0,0,0,.3);border-color:rgba(255,255,255,.3);color:#fff" onclick="S.page='feed';r()">← رجوع</button>`:''}
+        ${!isMyProfile?`<button class="btn-outline" style="position:absolute;top:12px;left:12px;font-size:12px;padding:5px 12px;background:rgba(0,0,0,.3);border-color:rgba(255,255,255,.3);color:#fff" onclick="S.page=S.prevPage||'feed';r()">← رجوع</button>`:''}
         <div style="position:absolute;bottom:-40px;right:24px;cursor:${isMyProfile?'pointer':'default'}" ${isMyProfile?'onclick="uploadProfilePhoto()"':''}>
           ${p.photoURL?
             `<div style="position:relative">
