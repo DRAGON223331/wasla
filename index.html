@@ -420,35 +420,35 @@ body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);trans
     ring3.style.animation='intro-ring-pulse 2.5s ease-in-out infinite 0.8s';
   }, 1500);
 
-  // Loading bar — fill over 9s smoothly to 95%, then to 100% on dismiss
+  // Loading bar — fills smoothly over 5.5s to 95%, jumps to 100% on dismiss
   let progress=0;
-  const totalMs=5400;
   const barInterval=setInterval(()=>{
-    progress=Math.min(progress+(100/totalMs)*150*(0.8+Math.random()*0.4), 95);
+    progress=Math.min(progress+2.8*(0.8+Math.random()*0.4), 95);
     bar.style.width=progress+'%';
     pct.textContent=Math.floor(progress)+'%';
     if(progress>=95) clearInterval(barInterval);
   }, 150);
 
-  // Dismiss logic — BOTH timer AND auth must be ready
-  let _timerDone=false, _authDone=false;
-  function _tryDismiss(){
-    if(!_timerDone||!_authDone) return;
+  function _dismiss(){
     clearInterval(barInterval);
-    bar.style.width='100%'; bar.style.transition='width 0.4s ease';
+    bar.style.width='100%';
+    bar.style.transition='width 0.4s ease';
     pct.textContent='100%';
     setTimeout(()=>{
       cancelAnimationFrame(animFrame);
       const screen=document.getElementById('intro-screen');
       if(!screen) return;
       screen.style.transition='opacity 0.8s ease, transform 0.8s ease';
-      screen.style.opacity='0'; screen.style.transform='scale(1.04)';
-      setTimeout(()=>{ screen.remove(); },850);
-    },450);
+      screen.style.opacity='0';
+      screen.style.transform='scale(1.04)';
+      setTimeout(()=>{ screen.remove(); }, 850);
+    }, 400);
   }
 
-  setTimeout(()=>{ _timerDone=true; _tryDismiss(); }, 6000);
-  window._introReady=function(){ _authDone=true; _tryDismiss(); };
+  // Timer is the ONLY condition — always dismiss after 6s no matter what
+  setTimeout(_dismiss, 6000);
+  // Also expose for Firebase to call early if needed (won't dismiss before 6s anyway)
+  window._introReady = function(){};
 })();
 </script>
 
