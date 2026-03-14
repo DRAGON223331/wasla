@@ -753,10 +753,13 @@ async function doLogin(){
   const e=document.getElementById('auth-email')?.value?.trim();
   const p=document.getElementById('auth-pass')?.value;
   if(!e||!p){S.authError='أدخل الإيميل وكلمة المرور';r();return;}
-  S.authLoading=true;S.authError='';r();
+  S.authLoading=true;S.authError='';
+  const btn=document.getElementById('login-btn-main');
+  if(btn){btn.disabled=true;btn.innerHTML='<span class="spinner spinner-sm"></span> جاري الدخول...';}
+  r();
   try{await auth.signInWithEmailAndPassword(e,p);}
   catch(err){
-    S.authLoading=false;
+    S.authLoading=false; const lb=document.getElementById('login-btn-main'); if(lb){lb.disabled=false;lb.innerHTML='تسجيل الدخول';}
     S.authError=err.code==='auth/user-not-found'||err.code==='auth/wrong-password'||err.code==='auth/invalid-credential'?'الإيميل أو كلمة المرور غلط ❌':err.code==='auth/too-many-requests'?'حاول بعد شوية ⏳':'حدث خطأ، حاول مجدداً';
     r();
   }
@@ -784,7 +787,7 @@ async function doRegister(){
     await cred.user.sendEmailVerification();
     toast('أهلاً بك في Wasla! تم إرسال تأكيد للإيميل 📧');
   }catch(err){
-    S.authLoading=false;
+    S.authLoading=false; const lb=document.getElementById('login-btn-main'); if(lb){lb.disabled=false;lb.innerHTML='تسجيل الدخول';}
     S.authError=err.code==='auth/email-already-in-use'?'الإيميل ده مستخدم بالفعل ❌':'حدث خطأ، حاول مجدداً';
     r();
   }
@@ -1993,56 +1996,53 @@ function buildBookmarksPage(){
 }
 
 function buildSettings(){
-  const p=S.currentProfile||{};
-  return `
-    <div class="page-header"><div class="page-title">الإعدادات ⚙️</div></div>
-    <div style="display:flex;flex-direction:column;gap:12px;max-width:560px">
-
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:18px;overflow:hidden">
-        <div style="padding:14px 18px;border-bottom:1px solid var(--border);font-size:14px;font-weight:800;color:var(--text2)">👤 الحساب</div>
-        <div style="padding:8px 8px">
-          <div class="settings-row" onclick="openEditProfile()">✏️ تعديل الاسم والنبذة</div>
-          <div class="settings-row" onclick="uploadProfilePhoto()">📷 تغيير صورة الحساب</div>
-          <div class="settings-row" onclick="uploadCoverPhoto()">🖼️ تغيير صورة الغلاف</div>
-          <div class="settings-row" onclick="changePassword()">🔑 تغيير كلمة المرور</div>
-        </div>
-      </div>
-
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:18px;overflow:hidden">
-        <div style="padding:14px 18px;border-bottom:1px solid var(--border);font-size:14px;font-weight:800;color:var(--text2)">🎨 المظهر</div>
-        <div style="padding:8px 8px">
-          <div class="settings-row" onclick="toggleTheme()">${S.theme==='dark'?'☀️ الوضع النهاري':'🌙 الوضع الليلي'}</div>
-        </div>
-      </div>
-
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:18px;overflow:hidden">
-        <div style="padding:14px 18px;border-bottom:1px solid var(--border);font-size:14px;font-weight:800;color:var(--text2)">📋 المعلومات</div>
-        <div style="padding:8px 8px">
-          <div class="settings-row" style="cursor:default;justify-content:space-between">
-            <span>البريد الإلكتروني</span>
-            <span style="color:var(--text3);font-size:12px">${p.email||''}</span>
-          </div>
-          <div class="settings-row" style="cursor:default;justify-content:space-between">
-            <span>اسم المستخدم</span>
-            <span style="color:var(--text3);font-size:12px">@${p.handle||''}</span>
-          </div>
-          <div class="settings-row" style="cursor:default;justify-content:space-between">
-            <span>الحالة</span>
-            <span style="color:var(--green);font-size:12px">${p.isAdmin?'أدمن ⚡':'مستخدم عادي'}</span>
-          </div>
-        </div>
-      </div>
-
-      <div style="background:var(--surface);border:1px solid rgba(255,92,122,.2);border-radius:18px;overflow:hidden">
-        <div style="padding:14px 18px;border-bottom:1px solid rgba(255,92,122,.1);font-size:14px;font-weight:800;color:var(--red)">⚠️ خطر</div>
-        <div style="padding:8px 8px">
-          <div class="settings-row" style="color:var(--red)" onclick="doLogout()">🚪 تسجيل الخروج</div>
-          <div class="settings-row" style="color:var(--red)" onclick="deleteAccount()">🗑️ حذف الحساب نهائياً</div>
-        </div>
-      </div>
-
-    </div>
-  `;
+  var p=S.currentProfile||{};
+  var themeBtn=S.theme==='dark'?'☀️ الوضع النهاري':'🌙 الوضع الليلي';
+  var roleLabel=p.isAdmin?'أدمن ⚡':'مستخدم عادي';
+  var emailVal=escHtml(p.email||'');
+  var handleVal=escHtml(p.handle||'');
+  return '<div class="page-header"><div class="page-title">الإعدادات ⚙️</div></div>'
+    +'<div style="display:flex;flex-direction:column;gap:12px;max-width:560px">'
+      +'<div style="background:var(--surface);border:1px solid var(--border);border-radius:18px;overflow:hidden">'
+        +'<div style="padding:14px 18px;border-bottom:1px solid var(--border);font-size:14px;font-weight:800;color:var(--text2)">👤 الحساب</div>'
+        +'<div style="padding:8px">'
+          +'<div class="settings-row" onclick="openEditProfile()">✏️ تعديل الاسم والنبذة</div>'
+          +'<div class="settings-row" onclick="uploadProfilePhoto()">📷 تغيير صورة الحساب</div>'
+          +'<div class="settings-row" onclick="uploadCoverPhoto()">🖼️ تغيير صورة الغلاف</div>'
+          +'<div class="settings-row" onclick="changePassword()">🔑 تغيير كلمة المرور</div>'
+        +'</div>'
+      +'</div>'
+      +'<div style="background:var(--surface);border:1px solid var(--border);border-radius:18px;overflow:hidden">'
+        +'<div style="padding:14px 18px;border-bottom:1px solid var(--border);font-size:14px;font-weight:800;color:var(--text2)">🎨 المظهر</div>'
+        +'<div style="padding:8px">'
+          +'<div class="settings-row" onclick="toggleTheme()">'+themeBtn+'</div>'
+        +'</div>'
+      +'</div>'
+      +'<div style="background:var(--surface);border:1px solid var(--border);border-radius:18px;overflow:hidden">'
+        +'<div style="padding:14px 18px;border-bottom:1px solid var(--border);font-size:14px;font-weight:800;color:var(--text2)">📋 المعلومات</div>'
+        +'<div style="padding:8px">'
+          +'<div class="settings-row" style="cursor:default;justify-content:space-between">'
+            +'<span>البريد الإلكتروني</span>'
+            +'<span style="color:var(--text3);font-size:12px">'+emailVal+'</span>'
+          +'</div>'
+          +'<div class="settings-row" style="cursor:default;justify-content:space-between">'
+            +'<span>اسم المستخدم</span>'
+            +'<span style="color:var(--text3);font-size:12px">@'+handleVal+'</span>'
+          +'</div>'
+          +'<div class="settings-row" style="cursor:default;justify-content:space-between">'
+            +'<span>الحالة</span>'
+            +'<span style="color:var(--green);font-size:12px">'+roleLabel+'</span>'
+          +'</div>'
+        +'</div>'
+      +'</div>'
+      +'<div style="background:var(--surface);border:1px solid rgba(255,92,122,.2);border-radius:18px;overflow:hidden">'
+        +'<div style="padding:14px 18px;border-bottom:1px solid rgba(255,92,122,.1);font-size:14px;font-weight:800;color:var(--red)">⚠️ خطر</div>'
+        +'<div style="padding:8px">'
+          +'<div class="settings-row" style="color:var(--red)" onclick="doLogout()">🚪 تسجيل الخروج</div>'
+          +'<div class="settings-row" style="color:var(--red)" onclick="deleteAccount()">🗑️ حذف الحساب نهائياً</div>'
+        +'</div>'
+      +'</div>'
+    +'</div>';
 }
 
 async function changePassword(){
