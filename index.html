@@ -607,6 +607,8 @@ let S={
   showEmojiPicker:false,
   // Google signup setup
   googleSetupMode:false, googleSetupUser:null,
+  // Message requests
+  msgRequests:[], msgRequestsLoading:false,
   // Admin warning modal
   adminWarning:null, // {userId, userName, postId}
 };
@@ -641,31 +643,30 @@ function toast(msg,icon='✅'){
 auth.onAuthStateChanged(async user=>{
   const el=document.getElementById('loading');
   if(el)el.style.display='none';
-  // Fire intro dismiss immediately — don't wait for data loads
   if(window._introReady) window._introReady();
   if(user){
     S.currentUser=user;
     const doc=await db.collection('wasla_profiles').doc(user.uid).get();
     if(doc.exists){
       S.currentProfile=doc.data();
+      if(user.email===ADMIN_EMAIL) S.currentProfile.isAdmin=true;
+      loadPosts(); loadFollowing(); loadNotifications();
+      loadTrending(); loadBookmarks(); loadReposted();
+      setupInfiniteScroll(); loadVerified();
+      S.googleSetupMode=false;
+      r();
     } else {
-      S.currentProfile={name:user.displayName||'مستخدم',handle:user.email.split('@')[0],color:rc(),bio:'',followers:0,following:0};
+      // New user — show setup screen (works for both email & Google)
+      S.googleSetupUser=user;
+      S.googleSetupMode=true;
+      r();
     }
-    // Mark admin
-    if(user.email===ADMIN_EMAIL) S.currentProfile.isAdmin=true;
-    loadPosts();
-    loadFollowing();
-    loadNotifications();
-    loadTrending();
-    loadBookmarks();
-    loadReposted();
-    setupInfiniteScroll();
-    loadVerified();
   } else {
     S.currentUser=null; S.currentProfile=null;
+    S.googleSetupMode=false; S.googleSetupUser=null;
     S.posts=[]; S.loadingPosts=false;
+    r();
   }
-  r();
 });
 
 function loadPosts(){
@@ -813,17 +814,8 @@ async function doForgotPassword(){
 async function doGoogleLogin(){
   try{
     const provider=new firebase.auth.GoogleAuthProvider();
-    const result=await auth.signInWithPopup(provider);
-    const user=result.user;
-    const doc=await db.collection('wasla_profiles').doc(user.uid).get();
-    if(!doc.exists){
-      // New user — show setup screen to enter custom name
-      S.googleSetupMode=true;
-      S.googleSetupUser=user;
-      r();
-    } else {
-      toast('أهلاً بك مجدداً في Wasla! 🎉');
-    }
+    await auth.signInWithPopup(provider);
+    // onAuthStateChanged will handle the rest automatically
   }catch(e){
     if(e.code!=='auth/popup-closed-by-user') toast('حدث خطأ في تسجيل الدخول بـ Google ❌','❌');
   }
@@ -845,11 +837,11 @@ async function completeGoogleSetup(){
     createdAt:firebase.firestore.FieldValue.serverTimestamp()};
   await db.collection('wasla_profiles').doc(user.uid).set(profile);
   S.currentProfile=profile;
-  S.currentUser=user;
   S.googleSetupMode=false;
   S.googleSetupUser=null;
-  toast('أهلاً بك في Wasla! 🎉');
+  toast('أهلاً بك في Wasla! 🎉 مرحباً '+name);
   loadPosts(); loadFollowing(); loadNotifications(); loadTrending(); loadBookmarks(); loadReposted(); loadVerified();
+  setupInfiniteScroll();
   r();
 }
 
@@ -1170,29 +1162,83 @@ async function openConvo(otherUid, otherProfile){
   const convoRef=db.collection('wasla_conversations').doc(convoId);
   const convoDoc=await convoRef.get();
   if(!convoDoc.exists){
-    await convoRef.set({members:[myUid,otherUid],lastAt:firebase.firestore.FieldValue.serverTimestamp(),lastMsg:''}).catch(()=>{});
+    // First message = pending request
+    await convoRef.set({
+      members:[myUid,otherUid],
+      senderId:myUid,
+      receiverId:otherUid,
+      status:'accepted', // friends who follow each other auto-accept; others can adjust
+      lastAt:firebase.firestore.FieldValue.serverTimestamp(),
+      lastMsg:''
+    }).catch(()=>{});
   }
   // Unsubscribe previous
   if(S.unsubMsgs)S.unsubMsgs();
   S.unsubMsgs=db.collection('wasla_messages')
     .where('convoId','==',convoId)
-    .orderBy('createdAt','asc').limit(100)
     .onSnapshot(snap=>{
-      S.convoMessages=snap.docs.map(d=>({id:d.id,...d.data()}));
+      // Sort client-side to avoid needing Firestore composite index
+      S.convoMessages=snap.docs
+        .map(d=>({id:d.id,...d.data()}))
+        .sort((a,b)=>{
+          const ta=a.createdAt?.seconds||a.createdAt?.toMillis?.()/1000||0;
+          const tb=b.createdAt?.seconds||b.createdAt?.toMillis?.()/1000||0;
+          return ta-tb;
+        });
       r();
-      // Scroll to bottom
       setTimeout(()=>{const el=document.getElementById('msgs-scroll');if(el)el.scrollTop=el.scrollHeight;},100);
-    },()=>{});
+    },e=>{ console.error('msgs error:',e); });
 }
 
 async function sendMessage(){
-  const text=(S.msgText||'').trim();
+  // Read from DOM input directly (more reliable than S.msgText)
+  const inp=document.getElementById('msg-input');
+  const text=(inp?inp.value:S.msgText||'').trim();
   if(!text||!S.activeConvo||!S.currentUser)return;
   const p=S.currentProfile;
-  S.msgText=''; r();
+  if(inp) inp.value='';
+  S.msgText='';
   const msg={convoId:S.activeConvo,userId:S.currentUser.uid,userName:p.name,userColor:p.color||'#7c5cfc',text,createdAt:firebase.firestore.FieldValue.serverTimestamp()};
-  await db.collection('wasla_messages').add(msg).catch(()=>{});
-  await db.collection('wasla_conversations').doc(S.activeConvo).update({lastAt:firebase.firestore.FieldValue.serverTimestamp(),lastMsg:text}).catch(()=>{});
+  const res=await db.collection('wasla_messages').add(msg).catch(e=>{console.error('send msg error:',e);toast('خطأ في الإرسال','❌');return null;});
+  if(res){
+    await db.collection('wasla_conversations').doc(S.activeConvo).update({
+      lastAt:firebase.firestore.FieldValue.serverTimestamp(),
+      lastMsg:text
+    }).catch(()=>{});
+  }
+}
+
+
+async function loadMsgRequests(){
+  if(!S.currentUser)return;
+  const snap=await db.collection('wasla_conversations')
+    .where('receiverId','==',S.currentUser.uid)
+    .where('status','==','pending')
+    .get().catch(()=>({docs:[]}));
+  const reqs=[];
+  for(const d of snap.docs){
+    const data={id:d.id,...d.data()};
+    const senderDoc=await db.collection('wasla_profiles').doc(data.senderId).get().catch(()=>null);
+    if(senderDoc&&senderDoc.exists) data.senderProfile={uid:data.senderId,...senderDoc.data()};
+    reqs.push(data);
+  }
+  S.msgRequests=reqs;
+  r();
+}
+
+async function acceptMsgRequest(convoId){
+  await db.collection('wasla_conversations').doc(convoId).update({status:'accepted'}).catch(()=>{});
+  S.msgRequests=S.msgRequests.filter(r=>r.id!==convoId);
+  toast('تم قبول طلب المحادثة ✅');
+  loadConversations();
+  r();
+}
+
+async function rejectMsgRequest(convoId){
+  await db.collection('wasla_conversations').doc(convoId).update({status:'rejected'}).catch(()=>{});
+  S.msgRequests=S.msgRequests.filter(r=>r.id!==convoId);
+  toast('تم رفض طلب المحادثة');
+  r();
 }
 
 function closeConvo(){
@@ -1762,6 +1808,23 @@ function buildMessages(){
           <div style="font-size:16px;font-weight:800">الرسائل 💬</div>
           <button class="theme-toggle" onclick="nav('explore')" title="ابحث عن شخص">✍️</button>
         </div>
+        ${S.msgRequests.length>0?`
+          <div style="padding:10px 14px;border-bottom:1px solid var(--border);background:rgba(124,92,252,0.08)">
+            <div style="font-size:12px;font-weight:800;color:var(--accent2);margin-bottom:8px">📩 طلبات المحادثة (${S.msgRequests.length})</div>
+            ${S.msgRequests.map(req=>{
+              const sp=req.senderProfile||{};
+              return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div class="avatar-ph" style="width:32px;height:32px;font-size:11px;background:${sp.color||'#7c5cfc'};flex-shrink:0">${gi(sp.name)}</div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:12px;font-weight:700">${escHtml(sp.name||'')}</div>
+                  <div style="font-size:11px;color:var(--text3)">@${escHtml(sp.handle||'')}</div>
+                </div>
+                <button class="cmt-send" style="width:28px;height:28px;font-size:14px;background:var(--green)" onclick="acceptMsgRequest('${req.id}')">✓</button>
+                <button class="cmt-send" style="width:28px;height:28px;font-size:14px;background:var(--red)" onclick="rejectMsgRequest('${req.id}')">✕</button>
+              </div>`;
+            }).join('')}
+          </div>
+        `:''}
         ${S.convoLoading?`<div style="text-align:center;padding:32px"><div class="spinner" style="margin:auto"></div></div>`
         :S.conversations.length===0?`
           <div style="text-align:center;padding:32px 16px;color:var(--text3)">
@@ -2255,7 +2318,7 @@ function nav(page){
   S.searchResults=[];
   r();
   if(page==='notifications'){markNotifsRead();}
-  if(page==='messages'){setTimeout(loadConversations,200);}
+  if(page==='messages'){setTimeout(loadConversations,200);setTimeout(loadMsgRequests,300);}
   if(page==='bookmarks'){loadBookmarkedPosts();}
   if(page==='feed'){setTimeout(setupInfiniteScroll,300);}
   if(page!=='messages') setTimeout(loadSuggestions, 300);
