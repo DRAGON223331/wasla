@@ -9,6 +9,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
 <style>
 :root{--bg:#0a0a0f;--bg2:#13131a;--bg3:#1c1c26;--surface:#1e1e2e;--surface2:#252535;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);--text:#f0f0f8;--text2:#9898b8;--text3:#5a5a7a;--accent:#7c5cfc;--accent2:#9d7ffe;--accent-glow:rgba(124,92,252,0.25);--warm:#ff8c42;--warm-glow:rgba(255,140,66,0.2);--green:#2dd4a0;--red:#ff5c7a;--card-shadow:0 4px 24px rgba(0,0,0,0.4)}
 .light{--bg:#f5f5fc;--bg2:#ebebf7;--bg3:#e0e0f0;--surface:#fff;--surface2:#f8f8ff;--border:rgba(0,0,0,0.07);--border2:rgba(0,0,0,0.12);--text:#0d0d1a;--text2:#5a5a8a;--text3:#9898c0;--accent-glow:rgba(124,92,252,0.12);--card-shadow:0 4px 24px rgba(0,0,0,0.08)}
@@ -136,6 +137,17 @@ body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);trans
 .admin-stat{background:var(--bg3);border-radius:12px;padding:14px;text-align:center}
 .admin-stat-num{font-size:28px;font-weight:900;font-family:'Syne',sans-serif;background:linear-gradient(135deg,var(--accent2),var(--warm));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .admin-stat-label{font-size:12px;color:var(--text3);margin-top:4px}
+
+
+.emoji-picker{position:absolute;bottom:50px;right:0;background:var(--surface2);border:1px solid var(--border2);border-radius:16px;padding:12px;display:grid;grid-template-columns:repeat(8,1fr);gap:4px;z-index:500;box-shadow:0 8px 32px rgba(0,0,0,.4);max-width:280px}
+.emoji-picker span{font-size:20px;cursor:pointer;padding:4px;border-radius:8px;text-align:center;transition:background .15s;user-select:none}
+.emoji-picker span:hover{background:var(--bg3)}
+
+.settings-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;cursor:pointer;font-size:14px;font-weight:600;color:var(--text);transition:background .15s}
+.settings-row:hover{background:var(--bg3)}
+.act-btn.bookmarked{color:#ffd700}
+.act-btn.reposted{color:var(--green)}
+
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -568,7 +580,31 @@ let S={
   conversations:[], convoLoading:false, activeConvo:null, activeConvoProfile:null,
   msgText:'', convoMessages:[], unsubMsgs:null,
   prevPage:'feed',
-  realTrending:[], // real hashtags from posts
+  realTrending:[],
+  // feed tabs
+  feedTab:'all', // 'all' | 'following'
+  // bookmarks
+  bookmarks:{}, // postId -> true
+  bookmarkedPosts:[],
+  // search tabs
+  searchTab:'users', // 'users' | 'posts'
+  searchPostResults:[],
+  // profile tabs
+  profileTab:'posts', // 'posts' | 'photos' | 'likes'
+  profileLikedPosts:[],
+  // settings
+  showSettings:false,
+  // report modal
+  reportTarget:null, // {type:'post'|'user', id, name}
+  // reposted map
+  repostedPosts:{},
+  // verified users (admin can set)
+  verifiedUsers:{},
+  // infinite scroll
+  postsLimit:20,
+  loadingMore:false,
+  // emoji
+  showEmojiPicker:false,
 };
 
 let unsubPosts=null;
@@ -615,6 +651,10 @@ auth.onAuthStateChanged(async user=>{
     loadFollowing();
     loadNotifications();
     loadTrending();
+    loadBookmarks();
+    loadReposted();
+    setupInfiniteScroll();
+    loadVerified();
   } else {
     S.currentUser=null; S.currentProfile=null;
     S.posts=[]; S.loadingPosts=false;
@@ -627,7 +667,7 @@ function loadPosts(){
   if(unsubPosts)unsubPosts();
   S.loadingPosts=true;
   unsubPosts=db.collection('wasla_posts')
-    .orderBy('createdAt','desc').limit(50)
+    .orderBy('createdAt','desc').limit(S.postsLimit||20)
     .onSnapshot(snap=>{
       S.posts=snap.docs.map(d=>({id:d.id,...d.data(),_liked:S.likedPosts[d.id]||false}));
       S.loadingPosts=false;
@@ -653,10 +693,19 @@ function loadNotifications(){
     .onSnapshot(snap=>{
       S.notifications=snap.docs.map(d=>({id:d.id,...d.data()}));
       S.notifUnread=S.notifications.filter(n=>!n.read).length;
+      document.title=S.notifUnread>0?`(${S.notifUnread}) Wasla - وصلة`:'Wasla - وصلة';
       r();
     },()=>{});
 }
 
+
+function loadVerified(){
+  db.collection('wasla_profiles').where('verified','==',true).get().then(snap=>{
+    S.verifiedUsers={};
+    snap.docs.forEach(d=>{ S.verifiedUsers[d.id]=true; });
+    r();
+  }).catch(()=>{});
+}
 
 function loadTrending(){
   if(!S.currentUser)return;
@@ -742,6 +791,37 @@ async function doRegister(){
 
 function doLogout(){auth.signOut();toast('تم تسجيل الخروج 👋');}
 
+async function doForgotPassword(){
+  const email=prompt('أدخل بريدك الإلكتروني:');
+  if(!email)return;
+  try{
+    await auth.sendPasswordResetEmail(email.trim());
+    toast('تم إرسال رابط إعادة التعيين لبريدك 📧');
+  }catch(e){
+    toast('البريد الإلكتروني غير مسجل ❌','❌');
+  }
+}
+
+async function doGoogleLogin(){
+  try{
+    const provider=new firebase.auth.GoogleAuthProvider();
+    const result=await auth.signInWithPopup(provider);
+    const user=result.user;
+    const doc=await db.collection('wasla_profiles').doc(user.uid).get();
+    if(!doc.exists){
+      const handle=(user.email||'').split('@')[0].replace(/[^a-zA-Z0-9_]/g,'').slice(0,20)||'user'+Date.now().toString().slice(-6);
+      const color=COLORS[Math.floor(Math.random()*COLORS.length)];
+      const profile={name:user.displayName||'مستخدم',handle,email:user.email,color,bio:'',followers:0,following:0,posts:0,photoURL:user.photoURL||null,isAdmin:user.email===ADMIN_EMAIL,createdAt:firebase.firestore.FieldValue.serverTimestamp()};
+      await db.collection('wasla_profiles').doc(user.uid).set(profile);
+      S.currentProfile=profile;
+    }
+    toast('أهلاً بك في Wasla! 🎉');
+  }catch(e){
+    if(e.code!=='auth/popup-closed-by-user') toast('حدث خطأ في تسجيل الدخول بـ Google ❌','❌');
+  }
+}
+
+
 // ============================
 // POST ACTIONS
 // ============================
@@ -777,6 +857,44 @@ async function createPost(){
     loadTrending();
   }catch(e){S.composerImageUploading=false;toast('حدث خطأ، حاول مجدداً','❌');}
   if(btn)btn.disabled=false;
+  r();
+}
+
+
+async function toggleBookmark(postId){
+  if(!S.currentUser)return;
+  const uid=S.currentUser.uid;
+  const ref=db.collection('wasla_bookmarks').doc(uid+'_'+postId);
+  if(S.bookmarks[postId]){
+    await ref.delete().catch(()=>{});
+    S.bookmarks[postId]=false;
+    toast('تم إزالة الحفظ');
+  } else {
+    await ref.set({userId:uid,postId,createdAt:firebase.firestore.FieldValue.serverTimestamp()}).catch(()=>{});
+    S.bookmarks[postId]=true;
+    toast('تم حفظ المنشور 🔖');
+  }
+  r();
+}
+
+async function loadBookmarks(){
+  if(!S.currentUser)return;
+  const snap=await db.collection('wasla_bookmarks').where('userId','==',S.currentUser.uid).get().catch(()=>({docs:[]}));
+  S.bookmarks={};
+  snap.docs.forEach(d=>{ S.bookmarks[d.data().postId]=true; });
+  r();
+}
+
+async function loadBookmarkedPosts(){
+  if(!S.currentUser)return;
+  const snap=await db.collection('wasla_bookmarks').where('userId','==',S.currentUser.uid).get().catch(()=>({docs:[]}));
+  const ids=snap.docs.map(d=>d.data().postId);
+  const posts=[];
+  for(const id of ids){
+    const doc=await db.collection('wasla_posts').doc(id).get().catch(()=>null);
+    if(doc&&doc.exists) posts.push({id:doc.id,...doc.data()});
+  }
+  S.bookmarkedPosts=posts;
   r();
 }
 
@@ -828,9 +946,21 @@ async function addComment(postId){
   r();
 }
 
+async function loadReposted(){
+  if(!S.currentUser)return;
+  const snap=await db.collection('wasla_reposts').where('userId','==',S.currentUser.uid).get().catch(()=>({docs:[]}));
+  S.repostedPosts={};
+  snap.docs.forEach(d=>{ S.repostedPosts[d.data().postId]=true; });
+  r();
+}
+
 async function repost(postId){
+  if(S.repostedPosts[postId]){toast('أعدت نشر هذا المنشور من قبل ↩️','⚠️');return;}
   const idx=S.posts.findIndex(p=>p.id===postId);
-  await db.collection('wasla_posts').doc(postId).update({reposts:firebase.firestore.FieldValue.increment(1)});
+  const uid=S.currentUser.uid;
+  await db.collection('wasla_reposts').doc(uid+'_'+postId).set({userId:uid,postId,createdAt:firebase.firestore.FieldValue.serverTimestamp()}).catch(()=>{});
+  await db.collection('wasla_posts').doc(postId).update({reposts:firebase.firestore.FieldValue.increment(1)}).catch(()=>{});
+  S.repostedPosts[postId]=true;
   if(idx>-1)S.posts[idx].reposts=(S.posts[idx].reposts||0)+1;
   toast('تم إعادة النشر 🔄');r();
 }
@@ -1022,9 +1152,10 @@ async function startMessageWith(uid, profile){
 // ============================
 async function doSearch(){
   const q=(S.searchQuery||'').trim().toLowerCase();
-  if(!q){S.searchResults=[];r();return;}
+  if(!q){S.searchResults=[];S.searchPostResults=[];r();return;}
   S.searchLoading=true;r();
   try{
+    // Search users
     const snap=await db.collection('wasla_profiles').get();
     S.searchResults=snap.docs
       .map(d=>({uid:d.id,...d.data()}))
@@ -1035,7 +1166,13 @@ async function doSearch(){
       })
       .filter(u=>u.uid!==S.currentUser?.uid)
       .slice(0,20);
-  }catch(e){S.searchResults=[];}
+    // Search posts
+    const postsSnap=await db.collection('wasla_posts').get();
+    S.searchPostResults=postsSnap.docs
+      .map(d=>({id:d.id,...d.data()}))
+      .filter(p=>(p.text||'').toLowerCase().includes(q))
+      .slice(0,20);
+  }catch(e){S.searchResults=[];S.searchPostResults=[];}
   S.searchLoading=false;r();
 }
 
@@ -1113,11 +1250,88 @@ async function adminDeletePost(postId){
   toast('تم الحذف 🗑️');
 }
 
+async function adminToggleVerify(uid){
+  const ref=db.collection('wasla_profiles').doc(uid);
+  const doc=await ref.get();
+  const cur=doc.data()?.verified||false;
+  await ref.update({verified:!cur});
+  toast(!cur?'تم توثيق الحساب ✓':'تم إلغاء التوثيق');
+  loadAdminStats();
+}
+
 async function adminDeleteUser(uid){
   if(!confirm('حذف هذا المستخدم من قاعدة البيانات؟'))return;
   await db.collection('wasla_profiles').doc(uid).delete();
   S.adminUsers=S.adminUsers.filter(u=>u.uid!==uid);
   toast('تم حذف المستخدم 🗑️');r();
+}
+
+
+function openReport(type, id, name){
+  S.reportTarget={type,id,name};
+  r();
+}
+function closeReport(){ S.reportTarget=null; r(); }
+async function submitReport(){
+  if(!S.currentUser||!S.reportTarget)return;
+  const reasons=['محتوى مسيء','خطاب كراهية','إزعاج أو تحرش','معلومات مضللة','انتهاك حقوق الملكية','أخرى'];
+  const sel=document.getElementById('report-reason')?.value;
+  if(!sel){toast('اختر سبب البلاغ','⚠️');return;}
+  await db.collection('wasla_reports').add({
+    reporterId:S.currentUser.uid,
+    targetType:S.reportTarget.type,
+    targetId:S.reportTarget.id,
+    targetName:S.reportTarget.name,
+    reason:sel,
+    createdAt:firebase.firestore.FieldValue.serverTimestamp()
+  }).catch(()=>{});
+  toast('تم إرسال البلاغ ✅');
+  S.reportTarget=null; r();
+}
+function buildReportModal(){
+  const t=S.reportTarget;
+  return `
+    <div class="overlay" onclick="if(event.target===this)closeReport()">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;width:100%;max-width:400px;padding:24px">
+        <div style="font-size:16px;font-weight:800;margin-bottom:16px">🚩 إبلاغ عن ${t.type==='post'?'منشور':'مستخدم'}</div>
+        <div style="font-size:13px;color:var(--text2);margin-bottom:16px">سبب البلاغ على "${escHtml(t.name||'')}":</div>
+        <select id="report-reason" class="input-field" style="width:100%;margin-bottom:16px">
+          <option value="">اختر السبب...</option>
+          <option>محتوى مسيء</option>
+          <option>خطاب كراهية</option>
+          <option>إزعاج أو تحرش</option>
+          <option>معلومات مضللة</option>
+          <option>انتهاك حقوق الملكية</option>
+          <option>أخرى</option>
+        </select>
+        <div style="display:flex;gap:10px">
+          <button class="btn-primary" style="flex:1;justify-content:center" onclick="submitReport()">إرسال البلاغ</button>
+          <button class="btn-outline" onclick="closeReport()">إلغاء</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+
+function setupInfiniteScroll(){
+  // Remove previous listener
+  const old=document.getElementById('feed-scroll-listener');
+  if(old) old.remove();
+  // Use requestAnimationFrame to wait for DOM
+  requestAnimationFrame(()=>{
+    const feedArea=document.querySelector('.feed-area');
+    if(!feedArea) return;
+    feedArea.addEventListener('scroll',()=>{
+      if(S.loadingMore) return;
+      if(feedArea.scrollTop+feedArea.clientHeight>=feedArea.scrollHeight-200){
+        S.loadingMore=true;
+        S.postsLimit=(S.postsLimit||20)+20;
+        loadPosts();
+        setTimeout(()=>{S.loadingMore=false;},2000);
+      }
+    },{passive:true});
+  });
 }
 
 // ============================
@@ -1131,6 +1345,7 @@ function buildApp(){
   if(!S.currentUser)return buildAuth();
   return `
     ${S.toast?`<div class="toast">${S.toast.icon} ${S.toast.msg}</div>`:''}
+    ${S.reportTarget?buildReportModal():''}
     ${S.followModal?buildFollowModal():''}
     <div class="app ${S.theme==='light'?'light':''}">
       ${buildSidebar()}${buildTopbar()}
@@ -1141,7 +1356,9 @@ function buildApp(){
           S.page==='notifications'?buildNotifs():
           S.page==='profile'?buildProfile():
           S.page==='viewprofile'?buildViewProfile():
-          S.page==='admin'?buildAdmin():''
+          S.page==='admin'?buildAdmin():
+          S.page==='settings'?buildSettings():
+          S.page==='bookmarks'?buildBookmarksPage():''
         }</div>`}
         ${S.page!=='messages'?buildRightPanel():''}
       </div>
@@ -1178,7 +1395,17 @@ function buildAuth(){
         ${isLogin?`
           <div class="input-group"><label class="input-label">البريد الإلكتروني</label><input class="input-field" type="email" id="auth-email" placeholder="you@example.com" dir="ltr" onkeydown="if(event.key==='Enter')doLogin()"></div>
           <div class="input-group"><label class="input-label">كلمة المرور</label><input class="input-field" type="password" id="auth-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
-          <button class="auth-btn" onclick="doLogin()" ${S.authLoading?'disabled':''}>${S.authLoading?'<span class="spinner spinner-sm"></span> جاري الدخول...':'تسجيل الدخول'}</button>
+          <button class="auth-btn" onclick="doLogin()" \${S.authLoading?'disabled':''}>\${S.authLoading?'<span class="spinner spinner-sm"></span> جاري الدخول...':'تسجيل الدخول'}</button>
+          <div style="display:flex;align-items:center;gap:10px;margin:4px 0 12px">
+            <div style="flex:1;height:1px;background:var(--border)"></div>
+            <span style="font-size:12px;color:var(--text3)">أو</span>
+            <div style="flex:1;height:1px;background:var(--border)"></div>
+          </div>
+          <button onclick="doGoogleLogin()" style="width:100%;padding:11px;border-radius:12px;background:var(--bg3);border:1px solid var(--border2);color:var(--text);font-size:14px;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:12px;transition:all .2s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='var(--bg3)'">
+            <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/><path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"/><path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0 1 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/><path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/></svg>
+            متابعة بـ Google
+          </button>
+          <div class="auth-switch" style="margin-bottom:4px"><span onclick="doForgotPassword()" style="color:var(--text3);font-weight:400">نسيت كلمة المرور؟</span></div>
           <div class="auth-switch">ليس لديك حساب؟ <span onclick="switchAuth('register')">سجّل الآن</span></div>
         `:`
           <div class="input-group"><label class="input-label">الاسم الكامل</label><input class="input-field" type="text" id="reg-name" placeholder="أحمد محمد"></div>
@@ -1205,6 +1432,8 @@ function buildSidebar(){
     {id:'messages',i:'💬',l:'الرسائل'},
     {id:'notifications',i:'🔔',l:'الإشعارات'},
     {id:'profile',i:'👤',l:'حسابي'},
+    {id:'bookmarks',i:'🔖',l:'المحفوظات'},
+    {id:'settings',i:'⚙️',l:'الإعدادات'},
   ];
   if(isAdmin()) nav.push({id:'admin',i:'⚡',l:'لوحة الإدارة'});
   return `
@@ -1259,7 +1488,14 @@ function buildBottomNav(){
 // ============================
 function buildFeed(){
   const p=S.currentProfile||{};
+  const feedPosts = S.feedTab==='following'
+    ? S.posts.filter(pt=>S.followingMap[pt.userId]||pt.userId===S.currentUser?.uid)
+    : S.posts;
   return `
+    <div style="display:flex;border-bottom:1px solid var(--border);margin-bottom:16px;gap:0">
+      <div class="profile-tab ${S.feedTab==='all'?'active':''}" onclick="S.feedTab='all';r()" style="flex:1;text-align:center">🌍 الكل</div>
+      <div class="profile-tab ${S.feedTab==='following'?'active':''}" onclick="S.feedTab='following';r()" style="flex:1;text-align:center">👥 المتابَعون</div>
+    </div>
     <div class="composer">
       <div class="composer-row">
         ${p.photoURL?`<img src="${p.photoURL}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;flex-shrink:0">`:
@@ -1274,7 +1510,10 @@ function buildFeed(){
       `:''}
       <div class="composer-actions">
         <button class="comp-btn" onclick="pickPostImage()">📷 صورة</button>
-        <button class="comp-btn">😊 إيموجي</button>
+        <div style="position:relative">
+          <button class="comp-btn" onclick="S.showEmojiPicker=!S.showEmojiPicker;r()">😊 إيموجي</button>
+          \${S.showEmojiPicker?\`<div class="emoji-picker">\${['😀','😂','😍','🥰','😎','🤩','😭','😤','🙌','👏','🔥','❤️','💯','✨','🎉','🚀','💪','👍','😅','🤔','💬','📸','🌍','🌟','💎','🎯','⚡','🏆','🌹','🦋','🤝','🙏'].map(e=>\`<span onclick="S.composerText+='$\{e\}';S.showEmojiPicker=false;r()">\${e}</span>\`).join('')}</div>\`:''}
+        </div>
         <button class="btn-primary" id="post-btn" onclick="createPost()" ${S.composerImageUploading?'disabled':''}>
           ${S.composerImageUploading?'<span class="spinner spinner-sm"></span> جاري الرفع...':'نشر ✨'}
         </button>
@@ -1291,7 +1530,7 @@ function buildFeed(){
           <button class="btn-outline" onclick="nav('explore')">🔍 استكشف</button>
         </div>
       </div>
-    `:S.posts.map(buildPost).join('')}
+    `:feedPosts.length===0&&S.feedTab==='following'?`<div style='text-align:center;padding:40px;color:var(--text3)'><div style='font-size:48px;margin-bottom:12px'>👥</div><div style='font-weight:700;color:var(--text2)'>تابع أشخاصاً لترى منشوراتهم هنا</div><button class='btn-outline' style='margin-top:12px' onclick="nav('explore')">🔍 استكشف</button></div>`:feedPosts.map(buildPost).join('')}
   `;
 }
 
@@ -1309,7 +1548,7 @@ function buildPost(post, allowDelete=true){
       <div class="post-header">
         ${avatar}
         <div class="post-user" style="cursor:pointer" onclick="viewProfile('${post.userId}')">
-          <div class="post-name">${escHtml(post.userName)} ${post.userIsAdmin?'<span class="admin-badge">أدمن</span>':''}</div>
+          <div class="post-name">${escHtml(post.userName)} ${post.userIsAdmin?'<span class="admin-badge">أدمن</span>':''} ${S.verifiedUsers[post.userId]?'<span style="color:#1d9bf0;font-size:14px" title="موثق">✓</span>':''}</div>
           <div class="post-handle">@${escHtml(post.userHandle||'')} · ${ta(post.createdAt)}</div>
         </div>
         ${canDelete?`<button class="btn-outline" style="font-size:12px;padding:4px 10px;color:var(--red);border-color:rgba(255,92,122,.4)" onclick="deletePost('${post.id}')">🗑️</button>`:''}
@@ -1319,8 +1558,10 @@ function buildPost(post, allowDelete=true){
       <div class="post-actions">
         <button class="act-btn ${liked?'liked':''}" onclick="toggleLike('${post.id}')"><span class="act-icon">${liked?'❤️':'🤍'}</span><span>${fn(post.likes)}</span></button>
         <button class="act-btn" onclick="toggleComments('${post.id}')"><span class="act-icon">💬</span><span>${fn(post.comments)}</span></button>
-        <button class="act-btn" onclick="repost('${post.id}')"><span class="act-icon">🔄</span><span>${fn(post.reposts)}</span></button>
-        <button class="act-btn" style="margin-right:auto" onclick="toast('تم نسخ الرابط 🔗')"><span class="act-icon">📤</span></button>
+        <button class="act-btn ${S.repostedPosts[post.id]?'reposted':''}" onclick="repost('${post.id}')"><span class="act-icon">🔄</span><span>${fn(post.reposts)}</span></button>
+        <button class="act-btn ${S.bookmarks[post.id]?'bookmarked':''}" onclick="toggleBookmark('${post.id}')"><span class="act-icon">${S.bookmarks[post.id]?'🔖':'🏷️'}</span></button>
+        <button class="act-btn" onclick="sharePost('${post.id}','${escAttr(post.userName)}')"><span class="act-icon">📤</span></button>
+        <button class="act-btn" style="margin-right:auto;color:var(--text3)" onclick="openReport('post','${post.id}','${escAttr(post.text&&post.text.slice(0,30)||'')}')"><span class="act-icon">🚩</span></button>
       </div>
       ${cmtsOpen?`
         <div class="cmts">
@@ -1574,7 +1815,7 @@ function buildProfileLayout(p, uid, posts, isMyProfile){
       <div style="padding:52px 24px 20px">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px">
           <div>
-            <div style="font-size:22px;font-weight:800">${escHtml(p.name||'مستخدم')} ${p.isAdmin?'<span class="admin-badge">أدمن</span>':''}</div>
+            <div style="font-size:22px;font-weight:800">${escHtml(p.name||'مستخدم')} ${p.isAdmin?'<span class="admin-badge">أدمن</span>':''} ${p.verified||S.verifiedUsers[uid]?'<span style="color:#1d9bf0;font-size:18px" title="موثق">✓</span>':''}</div>
             <div style="font-size:14px;color:var(--text3);margin-top:2px">@${escHtml(p.handle||'')}</div>
             <div style="font-size:14px;color:var(--text2);margin-top:8px">${escHtml(p.bio||'لا توجد نبذة بعد')}</div>
           </div>
@@ -1694,13 +1935,143 @@ function buildAdmin(){
           <div class="user-card-handle">@${escHtml(u.handle||'')} · ${u.email||''}</div>
           <div style="font-size:11px;color:var(--text3);margin-top:2px">${fn(u.followers||0)} متابع · ${fn(u.following||0)} يتابع</div>
         </div>
-        ${!u.isAdmin?`<button class="btn-outline" style="font-size:12px;padding:4px 10px;color:var(--red);border-color:rgba(255,92,122,.4)" onclick="adminDeleteUser('${u.uid}')">🗑️</button>`:''}
+        ${!u.isAdmin?`<div style='display:flex;gap:4px'><button class="btn-outline" style="font-size:11px;padding:4px 8px;color:#1d9bf0;border-color:rgba(29,155,240,.4)" onclick="adminToggleVerify('${u.uid}')">✓</button><button class="btn-outline" style="font-size:12px;padding:4px 10px;color:var(--red);border-color:rgba(255,92,122,.4)" onclick="adminDeleteUser('${u.uid}')">🗑️</button></div>`:''}
       </div>
     `).join('')}
 
     <div style="font-size:15px;font-weight:800;margin:20px 0 12px">📝 كل المنشورات</div>
     ${S.posts.map(post=>buildPost(post,true)).join('')}
   `;
+}
+
+
+function sharePost(postId, userName){
+  const url = window.location.href.split('?')[0]+'?post='+postId;
+  if(navigator.share){
+    navigator.share({title:'منشور من '+userName+' على Wasla',url}).catch(()=>{});
+  } else {
+    navigator.clipboard.writeText(url).then(()=>toast('تم نسخ الرابط 🔗')).catch(()=>toast('تم نسخ الرابط 🔗'));
+  }
+}
+
+async function loadProfileLikes(){
+  if(!S.currentUser)return;
+  const snap=await db.collection('wasla_likes').where('userId','==',S.currentUser.uid).get().catch(()=>({docs:[]}));
+  const ids=snap.docs.map(d=>d.data().postId);
+  const posts=[];
+  for(const id of ids.slice(0,30)){
+    const doc=await db.collection('wasla_posts').doc(id).get().catch(()=>null);
+    if(doc&&doc.exists) posts.push({id:doc.id,...doc.data()});
+  }
+  S.profileLikedPosts=posts;
+  r();
+}
+
+function buildPhotoGrid(posts){
+  const photos=posts.filter(p=>p.imageUrl);
+  if(photos.length===0) return `<div style="text-align:center;color:var(--text3);padding:40px;font-size:14px">لا توجد صور بعد 📷</div>`;
+  return `<div class="explore-grid">\${photos.map(p=>`
+    <div class="exp-item" onclick="window.open('\${p.imageUrl}','_blank')">
+      <img src="\${p.imageUrl}" loading="lazy" alt="">
+      <div class="exp-ov"><span>❤️ \${fn(p.likes||0)}</span><span>💬 \${fn(p.comments||0)}</span></div>
+    </div>
+  `).join('')}</div>`;
+}
+
+function buildBookmarksPage(){
+  if(S.bookmarkedPosts.length===0 && Object.keys(S.bookmarks).length===0){
+    return `
+      <div class="page-header"><div class="page-title">المحفوظات 🔖</div></div>
+      <div style="text-align:center;padding:48px;color:var(--text3)">
+        <div style="font-size:48px;margin-bottom:12px">🔖</div>
+        <div style="font-size:15px;font-weight:700;color:var(--text2)">مفيش منشورات محفوظة</div>
+        <div style="font-size:13px;margin-top:6px">اضغط 🏷️ على أي منشور لحفظه</div>
+      </div>`;
+  }
+  return `
+    <div class="page-header"><div class="page-title">المحفوظات 🔖</div></div>
+    \${S.bookmarkedPosts.length===0?
+      '<div style="text-align:center;padding:24px"><div class="spinner" style="margin:auto"></div></div>'
+      :S.bookmarkedPosts.map(p=>buildPost(p,false)).join('')}`;
+}
+
+function buildSettings(){
+  const p=S.currentProfile||{};
+  return `
+    <div class="page-header"><div class="page-title">الإعدادات ⚙️</div></div>
+    <div style="display:flex;flex-direction:column;gap:12px;max-width:560px">
+
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:18px;overflow:hidden">
+        <div style="padding:14px 18px;border-bottom:1px solid var(--border);font-size:14px;font-weight:800;color:var(--text2)">👤 الحساب</div>
+        <div style="padding:8px 8px">
+          <div class="settings-row" onclick="openEditProfile()">✏️ تعديل الاسم والنبذة</div>
+          <div class="settings-row" onclick="uploadProfilePhoto()">📷 تغيير صورة الحساب</div>
+          <div class="settings-row" onclick="uploadCoverPhoto()">🖼️ تغيير صورة الغلاف</div>
+          <div class="settings-row" onclick="changePassword()">🔑 تغيير كلمة المرور</div>
+        </div>
+      </div>
+
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:18px;overflow:hidden">
+        <div style="padding:14px 18px;border-bottom:1px solid var(--border);font-size:14px;font-weight:800;color:var(--text2)">🎨 المظهر</div>
+        <div style="padding:8px 8px">
+          <div class="settings-row" onclick="toggleTheme()">\${S.theme==='dark'?'☀️ الوضع النهاري':'🌙 الوضع الليلي'}</div>
+        </div>
+      </div>
+
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:18px;overflow:hidden">
+        <div style="padding:14px 18px;border-bottom:1px solid var(--border);font-size:14px;font-weight:800;color:var(--text2)">📋 المعلومات</div>
+        <div style="padding:8px 8px">
+          <div class="settings-row" style="cursor:default;justify-content:space-between">
+            <span>البريد الإلكتروني</span>
+            <span style="color:var(--text3);font-size:12px">\${p.email||''}</span>
+          </div>
+          <div class="settings-row" style="cursor:default;justify-content:space-between">
+            <span>اسم المستخدم</span>
+            <span style="color:var(--text3);font-size:12px">@\${p.handle||''}</span>
+          </div>
+          <div class="settings-row" style="cursor:default;justify-content:space-between">
+            <span>الحالة</span>
+            <span style="color:var(--green);font-size:12px">\${p.isAdmin?'أدمن ⚡':'مستخدم عادي'}</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:var(--surface);border:1px solid rgba(255,92,122,.2);border-radius:18px;overflow:hidden">
+        <div style="padding:14px 18px;border-bottom:1px solid rgba(255,92,122,.1);font-size:14px;font-weight:800;color:var(--red)">⚠️ خطر</div>
+        <div style="padding:8px 8px">
+          <div class="settings-row" style="color:var(--red)" onclick="doLogout()">🚪 تسجيل الخروج</div>
+          <div class="settings-row" style="color:var(--red)" onclick="deleteAccount()">🗑️ حذف الحساب نهائياً</div>
+        </div>
+      </div>
+
+    </div>
+  `;
+}
+
+async function changePassword(){
+  const newPass=prompt('أدخل كلمة المرور الجديدة (٦ أحرف على الأقل):');
+  if(!newPass||newPass.length<6){toast('كلمة المرور قصيرة جداً','⚠️');return;}
+  try{
+    await auth.currentUser.updatePassword(newPass);
+    toast('تم تغيير كلمة المرور ✅');
+  }catch(e){
+    if(e.code==='auth/requires-recent-login'){
+      toast('يجب تسجيل الدخول مجدداً لتغيير كلمة المرور','⚠️');
+      doLogout();
+    } else toast('حدث خطأ، حاول مجدداً','❌');
+  }
+}
+
+async function deleteAccount(){
+  if(!confirm('هل أنت متأكد؟ سيتم حذف حسابك نهائياً ولا يمكن التراجع!'))return;
+  if(!confirm('تأكيد أخير: هل تريد حذف حسابك؟'))return;
+  try{
+    await db.collection('wasla_profiles').doc(S.currentUser.uid).delete();
+    await auth.currentUser.delete();
+    toast('تم حذف الحساب 👋');
+  }catch(e){
+    toast('يجب تسجيل الدخول مجدداً لحذف الحساب','⚠️');
+  }
 }
 
 // ============================
@@ -1761,6 +2132,8 @@ function nav(page){
   r();
   if(page==='notifications'){markNotifsRead();}
   if(page==='messages'){setTimeout(loadConversations,200);}
+  if(page==='bookmarks'){loadBookmarkedPosts();}
+  if(page==='feed'){setTimeout(setupInfiniteScroll,300);}
   if(page!=='messages') setTimeout(loadSuggestions, 300);
 }
 function toggleTheme(){S.theme=S.theme==='dark'?'light':'dark';r();}
