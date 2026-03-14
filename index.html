@@ -605,6 +605,10 @@ let S={
   loadingMore:false,
   // emoji
   showEmojiPicker:false,
+  // Google signup setup
+  googleSetupMode:false, googleSetupUser:null,
+  // Admin warning modal
+  adminWarning:null, // {userId, userName, postId}
 };
 
 let unsubPosts=null;
@@ -813,16 +817,63 @@ async function doGoogleLogin(){
     const user=result.user;
     const doc=await db.collection('wasla_profiles').doc(user.uid).get();
     if(!doc.exists){
-      const handle=(user.email||'').split('@')[0].replace(/[^a-zA-Z0-9_]/g,'').slice(0,20)||'user'+Date.now().toString().slice(-6);
-      const color=COLORS[Math.floor(Math.random()*COLORS.length)];
-      const profile={name:user.displayName||'مستخدم',handle,email:user.email,color,bio:'',followers:0,following:0,posts:0,photoURL:user.photoURL||null,isAdmin:user.email===ADMIN_EMAIL,createdAt:firebase.firestore.FieldValue.serverTimestamp()};
-      await db.collection('wasla_profiles').doc(user.uid).set(profile);
-      S.currentProfile=profile;
+      // New user — show setup screen to enter custom name
+      S.googleSetupMode=true;
+      S.googleSetupUser=user;
+      r();
+    } else {
+      toast('أهلاً بك مجدداً في Wasla! 🎉');
     }
-    toast('أهلاً بك في Wasla! 🎉');
   }catch(e){
     if(e.code!=='auth/popup-closed-by-user') toast('حدث خطأ في تسجيل الدخول بـ Google ❌','❌');
   }
+}
+
+async function completeGoogleSetup(){
+  const user=S.googleSetupUser;
+  if(!user) return;
+  const name=document.getElementById('gs-name')?.value?.trim();
+  const handle=document.getElementById('gs-handle')?.value?.trim().replace(/[^a-zA-Z0-9_]/g,'').slice(0,20);
+  if(!name){toast('أدخل اسمك','⚠️');return;}
+  if(!handle||handle.length<3){toast('اسم المستخدم ٣ أحرف على الأقل','⚠️');return;}
+  // Check handle unique
+  const ex=await db.collection('wasla_profiles').where('handle','==',handle).get().catch(()=>({empty:true}));
+  if(!ex.empty){toast('اسم المستخدم ده موجود، جرب تاني','⚠️');return;}
+  const color=COLORS[Math.floor(Math.random()*COLORS.length)];
+  const profile={name,handle,email:user.email,color,bio:'',followers:0,following:0,posts:0,
+    photoURL:user.photoURL||null,isAdmin:user.email===ADMIN_EMAIL,
+    createdAt:firebase.firestore.FieldValue.serverTimestamp()};
+  await db.collection('wasla_profiles').doc(user.uid).set(profile);
+  S.currentProfile=profile;
+  S.currentUser=user;
+  S.googleSetupMode=false;
+  S.googleSetupUser=null;
+  toast('أهلاً بك في Wasla! 🎉');
+  loadPosts(); loadFollowing(); loadNotifications(); loadTrending(); loadBookmarks(); loadReposted(); loadVerified();
+  r();
+}
+
+function buildGoogleSetupScreen(){
+  const user=S.googleSetupUser||{};
+  const suggestHandle=((user.email||'').split('@')[0]||'').replace(/[^a-zA-Z0-9_]/g,'').slice(0,20);
+  return '<div class="auth-screen">'
+    +'<div class="auth-left">'
+      +'<div style="position:relative;z-index:1;text-align:center">'
+        +'<div style="font-family:Syne,sans-serif;font-size:52px;font-weight:900;background:linear-gradient(135deg,#9d7ffe,#ff8c42);-webkit-background-clip:text;-webkit-text-fill-color:transparent">Wasla</div>'
+        +'<div style="font-size:24px;color:rgba(255,255,255,.7);margin-top:8px">وصلة</div>'
+      +'</div>'
+    +'</div>'
+    +'<div class="auth-right">'
+      +(user.photoURL?'<img src="'+user.photoURL+'" style="width:72px;height:72px;border-radius:50%;object-fit:cover;margin-bottom:12px;border:3px solid var(--accent)">':'')
+      +'<div style="font-size:20px;font-weight:800;margin-bottom:4px;text-align:center">مرحباً! 👋</div>'
+      +'<div style="font-size:13px;color:var(--text2);margin-bottom:20px;text-align:center">أدخل اسمك واسم مستخدم فريد</div>'
+      +'<div class="input-group"><label class="input-label">اسمك الكامل</label>'
+        +'<input class="input-field" id="gs-name" placeholder="أحمد محمد" value="'+escHtml((user.displayName||''))+'"></div>'
+      +'<div class="input-group"><label class="input-label">اسم المستخدم</label>'
+        +'<input class="input-field" id="gs-handle" placeholder="ahmed123" dir="ltr" value="'+suggestHandle+'" onkeydown="if(event.key==&quot;Enter&quot;)completeGoogleSetup()"></div>'
+      +'<button class="auth-btn" onclick="completeGoogleSetup()">دخول Wasla 🚀</button>'
+    +'</div>'
+  +'</div>';
 }
 
 
@@ -971,8 +1022,14 @@ async function repost(postId){
 
 async function deletePost(postId){
   if(!confirm('هل تريد حذف المنشور؟'))return;
-  await db.collection('wasla_posts').doc(postId).delete();
-  toast('تم الحذف 🗑️');
+  try{
+    await db.collection('wasla_posts').doc(postId).delete();
+    S.posts=S.posts.filter(p=>p.id!==postId);
+    S.bookmarkedPosts=S.bookmarkedPosts.filter(p=>p.id!==postId);
+    S.viewingProfilePosts=S.viewingProfilePosts.filter(p=>p.id!==postId);
+    toast('تم الحذف 🗑️');
+    r();
+  }catch(e){ toast('حدث خطأ في الحذف','❌'); }
 }
 
 // ============================
@@ -1346,10 +1403,12 @@ function r(){
 }
 
 function buildApp(){
+  if(S.googleSetupMode)return buildGoogleSetupScreen();
   if(!S.currentUser)return buildAuth();
   return `
     ${S.toast?`<div class="toast">${S.toast.icon} ${S.toast.msg}</div>`:''}
     ${S.reportTarget?buildReportModal():''}
+    ${S.adminWarning?buildAdminWarningModal():''}
     ${S.followModal?buildFollowModal():''}
     <div class="app ${S.theme==='light'?'light':''}">
       ${buildSidebar()}${buildTopbar()}
@@ -1555,7 +1614,10 @@ function buildPost(post, allowDelete=true){
           <div class="post-name">${escHtml(post.userName)} ${post.userIsAdmin?'<span class="admin-badge">أدمن</span>':''} ${S.verifiedUsers[post.userId]?'<span style="color:#1d9bf0;font-size:14px" title="موثق">✓</span>':''}</div>
           <div class="post-handle">@${escHtml(post.userHandle||'')} · ${ta(post.createdAt)}</div>
         </div>
-        ${canDelete?`<button class="btn-outline" style="font-size:12px;padding:4px 10px;color:var(--red);border-color:rgba(255,92,122,.4)" onclick="deletePost('${post.id}')">🗑️</button>`:''}
+        <div style="display:flex;gap:4px">
+          ${canDelete?`<button class="btn-outline" style="font-size:12px;padding:4px 10px;color:var(--red);border-color:rgba(255,92,122,.4)" onclick="deletePost('${post.id}')">🗑️</button>`:''}
+          ${isAdmin()&&!isMe?`<button class="btn-outline" style="font-size:12px;padding:4px 10px;color:var(--warm);border-color:rgba(255,140,66,.4)" onclick="openAdminWarning('${post.userId}','${escAttr(post.userName||'')}','${post.id}')">⚡</button>`:''}
+        </div>
       </div>
       ${post.text?`<div class="post-body">${escHtml(post.text).replace(/(#\S+)/g,'<span class="hashtag">$1</span>').replace(/\n/g,'<br>')}</div>`:''}
       ${post.imageUrl?`<img class="post-media" src="${post.imageUrl}" loading="lazy" alt="" style="cursor:pointer" onclick="window.open('${post.imageUrl}','_blank')">` : ''}
@@ -1664,7 +1726,7 @@ function buildUserCard(u, showFollowBtn=true){
 // NOTIFICATIONS
 // ============================
 function buildNotifs(){
-  const notifIcon={like:'❤️',follow:'👤',comment:'💬'};
+  const notifIcon={like:'❤️',follow:'👤',comment:'💬',warning:'⚡'};
   return `
     <div class="page-header"><div class="page-title">الإشعارات 🔔</div></div>
     ${S.notifications.length===0?`
@@ -2085,6 +2147,57 @@ function addEmoji(e){
     if(ta){ta.value=S.composerText;ta.focus();}
   },50);
 }
+
+function openAdminWarning(userId, userName, postId){
+  S.adminWarning={userId,userName,postId};
+  r();
+}
+function closeAdminWarning(){ S.adminWarning=null; r(); }
+
+async function sendAdminWarning(){
+  const w=S.adminWarning;
+  if(!w) return;
+  const reason=document.getElementById('warn-reason')?.value?.trim();
+  if(!reason){toast('اكتب سبب التحذير','⚠️');return;}
+  // Save warning to Firestore
+  await db.collection('wasla_notifications').add({
+    toUserId:w.userId,
+    fromUserName:'⚡ الإدارة',
+    type:'warning',
+    text:'تحذير: '+reason,
+    read:false,
+    isAdminWarning:true,
+    createdAt:firebase.firestore.FieldValue.serverTimestamp()
+  }).catch(()=>{});
+  // Delete post if requested
+  const delPost=document.getElementById('warn-delete-post')?.checked;
+  if(delPost && w.postId){
+    await db.collection('wasla_posts').doc(w.postId).delete().catch(()=>{});
+    S.posts=S.posts.filter(p=>p.id!==w.postId);
+  }
+  toast('تم إرسال التحذير ✅');
+  S.adminWarning=null;
+  r();
+}
+
+function buildAdminWarningModal(){
+  const w=S.adminWarning;
+  return '<div class="overlay" onclick="if(event.target===this)closeAdminWarning()">'
+    +'<div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;width:100%;max-width:420px;padding:24px">'
+      +'<div style="font-size:16px;font-weight:800;margin-bottom:4px">⚡ تحذير للمستخدم</div>'
+      +'<div style="font-size:13px;color:var(--text2);margin-bottom:16px">إرسال تحذير رسمي لـ <strong>'+escHtml(w.userName)+'</strong></div>'
+      +'<textarea id="warn-reason" class="input-field" placeholder="سبب التحذير..." style="width:100%;min-height:90px;resize:none;margin-bottom:12px"></textarea>'
+      +(w.postId?'<label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);margin-bottom:16px;cursor:pointer">'
+        +'<input type="checkbox" id="warn-delete-post" style="width:16px;height:16px"> حذف المنشور أيضاً'
+        +'</label>':'<div style="margin-bottom:16px"></div>')
+      +'<div style="display:flex;gap:10px">'
+        +'<button class="btn-primary" style="flex:1;justify-content:center" onclick="sendAdminWarning()">⚡ إرسال التحذير</button>'
+        +'<button class="btn-outline" onclick="closeAdminWarning()">إلغاء</button>'
+      +'</div>'
+    +'</div>'
+  +'</div>';
+}
+
 // ============================
 // RIGHT PANEL
 // ============================
