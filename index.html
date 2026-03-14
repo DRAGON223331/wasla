@@ -287,23 +287,33 @@ body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);trans
     if(progress>=95) clearInterval(barInterval);
   }, 120);
 
-  // Step 6: exit animation (2800ms)
-  window._introReady = function(){
+  // Two conditions must BOTH be true before dismissing:
+  // 1. Minimum 3.5s has passed
+  // 2. Firebase auth is ready
+  let _timerDone = false;
+  let _authDone = false;
+
+  function _tryDismiss(){
+    if(!_timerDone || !_authDone) return;
     clearInterval(barInterval);
     bar.style.width='100%';
     bar.style.transition='width 0.3s ease';
     setTimeout(()=>{
       cancelAnimationFrame(animFrame);
       const screen=document.getElementById('intro-screen');
-      screen.style.transition='opacity 0.6s ease, transform 0.6s ease';
+      if(!screen) return;
+      screen.style.transition='opacity 0.7s ease, transform 0.7s ease';
       screen.style.opacity='0';
       screen.style.transform='scale(1.05)';
-      setTimeout(()=>{ screen.remove(); }, 700);
+      setTimeout(()=>{ screen.remove(); }, 750);
     }, 350);
-  };
+  }
 
-  // Auto-dismiss after 3.5s max
-  setTimeout(()=>{ if(window._introReady) window._introReady(); }, 3500);
+  // Timer: always wait at least 3.5s
+  setTimeout(()=>{ _timerDone=true; _tryDismiss(); }, 3500);
+
+  // Called by Firebase when auth is ready
+  window._introReady = function(){ _authDone=true; _tryDismiss(); };
 })();
 </script>
 
