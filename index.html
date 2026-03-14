@@ -1970,13 +1970,9 @@ async function loadProfileLikes(){
 
 function buildPhotoGrid(posts){
   const photos=posts.filter(p=>p.imageUrl);
-  if(photos.length===0) return `<div style="text-align:center;color:var(--text3);padding:40px;font-size:14px">لا توجد صور بعد 📷</div>`;
-  return `<div class="explore-grid">\${photos.map(p=>`
-    <div class="exp-item" onclick="window.open('\${p.imageUrl}','_blank')">
-      <img src="\${p.imageUrl}" loading="lazy" alt="">
-      <div class="exp-ov"><span>❤️ \${fn(p.likes||0)}</span><span>💬 \${fn(p.comments||0)}</span></div>
-    </div>
-  `).join('')}</div>`;
+  if(photos.length===0) return '<div style="text-align:center;color:var(--text3);padding:40px;font-size:14px">لا توجد صور بعد 📷</div>';
+  const items=photos.map(p=>'<div class="exp-item" onclick="window.open(\''+p.imageUrl+'\',\'_blank\')"><img src="'+p.imageUrl+'" loading="lazy" alt=""><div class="exp-ov"><span>❤️ '+fn(p.likes||0)+'</span><span>💬 '+fn(p.comments||0)+'</span></div></div>').join('');
+  return '<div class="explore-grid">'+items+'</div>';
 }
 
 function buildBookmarksPage(){
