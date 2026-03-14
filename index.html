@@ -177,7 +177,50 @@ const db=firebase.firestore();
 const CLOUDINARY_CLOUD='deejgvpv8';
 const CLOUDINARY_PRESET='waslaup';
 
+async function compressImage(file, maxSizeMB=9){
+  return new Promise((resolve)=>{
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      const img=new Image();
+      img.onload=()=>{
+        const canvas=document.createElement('canvas');
+        let {width,height}=img;
+        // Scale down if too large
+        const maxDim=2048;
+        if(width>maxDim||height>maxDim){
+          if(width>height){height=Math.round(height*maxDim/width);width=maxDim;}
+          else{width=Math.round(width*maxDim/height);height=maxDim;}
+        }
+        canvas.width=width;canvas.height=height;
+        const ctx=canvas.getContext('2d');
+        ctx.drawImage(img,0,0,width,height);
+        // Try quality from 0.9 down until under maxSizeMB
+        let quality=0.9;
+        const tryCompress=()=>{
+          canvas.toBlob(blob=>{
+            if(!blob){resolve(file);return;}
+            if(blob.size<=maxSizeMB*1024*1024||quality<=0.3){
+              resolve(new File([blob],file.name,{type:'image/jpeg'}));
+            } else {
+              quality-=0.1;
+              tryCompress();
+            }
+          },'image/jpeg',quality);
+        };
+        tryCompress();
+      };
+      img.src=ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 async function uploadToCloudinary(file){
+  // Compress if image
+  if(file.type.startsWith('image/')){
+    toast('جاري ضغط الصورة...','🗜️');
+    file=await compressImage(file);
+  }
   const fd=new FormData();
   fd.append('file',file);
   fd.append('upload_preset',CLOUDINARY_PRESET);
@@ -473,7 +516,7 @@ function pickPostImage(){
   inp.onchange=e=>{
     const file=e.target.files[0];
     if(!file)return;
-    if(file.size>10*1024*1024){toast('الصورة أكبر من 10MB','⚠️');return;}
+    if(file.size>50*1024*1024){toast('الصورة أكبر من 50MB','⚠️');return;}
     S.composerImage=file;
     const reader=new FileReader();
     reader.onload=ev=>{S.composerImagePreview=ev.target.result;r();};
