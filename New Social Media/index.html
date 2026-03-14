@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wasla - وصلة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<style>
+:root{--bg:#0a0a0f;--bg2:#13131a;--bg3:#1c1c26;--surface:#1e1e2e;--surface2:#252535;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);--text:#f0f0f8;--text2:#9898b8;--text3:#5a5a7a;--accent:#7c5cfc;--accent2:#9d7ffe;--accent-glow:rgba(124,92,252,0.25);--warm:#ff8c42;--warm-glow:rgba(255,140,66,0.2);--green:#2dd4a0;--red:#ff5c7a;--card-shadow:0 4px 24px rgba(0,0,0,0.4)}
+.light{--bg:#f5f5fc;--bg2:#ebebf7;--bg3:#e0e0f0;--surface:#fff;--surface2:#f8f8ff;--border:rgba(0,0,0,0.07);--border2:rgba(0,0,0,0.12);--text:#0d0d1a;--text2:#5a5a8a;--text3:#9898c0;--accent-glow:rgba(124,92,252,0.12);--card-shadow:0 4px 24px rgba(0,0,0,0.08)}
+*{box-sizing:border-box;margin:0;padding:0}html,body{height:100%;overflow:hidden}
+body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);transition:background .3s,color .3s}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.app{display:flex;height:100vh;overflow:hidden}
+/* SIDEBAR */
+.sidebar{width:240px;background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;padding:20px 12px;gap:4px;flex-shrink:0;z-index:100}
+.sidebar-logo{display:flex;align-items:center;gap:10px;padding:8px 12px 20px;margin-bottom:8px}
+.logo-icon{width:38px;height:38px;background:linear-gradient(135deg,var(--accent),var(--warm));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#fff;font-family:'Syne',sans-serif}
+.logo-text{font-family:'Syne',sans-serif;font-weight:800;font-size:15px;background:linear-gradient(135deg,var(--accent2),var(--warm));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:12px;cursor:pointer;font-size:14px;font-weight:600;color:var(--text2);transition:all .2s;user-select:none}
+.nav-item:hover{background:var(--surface);color:var(--text)}
+.nav-item.active{background:linear-gradient(135deg,var(--accent-glow),transparent);color:var(--accent2);border:1px solid rgba(124,92,252,0.2)}
+.nav-icon{font-size:20px;width:24px;text-align:center}
+.sidebar-bottom{margin-top:auto;padding-top:12px;border-top:1px solid var(--border)}
+.user-mini{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;cursor:pointer;transition:background .2s}
+.user-mini:hover{background:var(--surface)}
+.avatar-ph{display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;border-radius:50%;flex-shrink:0}
+.user-mini-name{font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-mini-handle{font-size:11px;color:var(--text3)}
+/* MAIN */
+.main{flex:1;display:flex;overflow:hidden}
+.feed-area{flex:1;overflow-y:auto;padding:24px 20px}
+.right-panel{width:300px;padding:24px 16px;overflow-y:auto;flex-shrink:0;border-right:1px solid var(--border)}
+/* TOPBAR */
+.topbar{display:none;position:fixed;top:0;left:0;right:0;height:56px;background:var(--bg2);border-bottom:1px solid var(--border);align-items:center;justify-content:space-between;padding:0 16px;z-index:200}
+.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:60px;background:var(--bg2);border-top:1px solid var(--border);align-items:center;justify-content:space-around;z-index:200}
+.bnav-item{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;padding:6px 12px;border-radius:10px;color:var(--text3);font-size:10px;font-weight:600;transition:all .2s}
+.bnav-item.active{color:var(--accent2)}.bnav-icon{font-size:22px}
+/* COMPOSER */
+.composer{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:16px;margin-bottom:16px}
+.composer-row{display:flex;gap:12px;align-items:flex-start}
+.composer textarea{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px 14px;color:var(--text);font-family:'Cairo',sans-serif;font-size:14px;resize:none;min-height:80px;outline:none;direction:rtl;transition:border-color .2s}
+.composer textarea:focus{border-color:var(--accent)}
+.composer textarea::placeholder{color:var(--text3)}
+.composer-actions{display:flex;align-items:center;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.comp-btn{padding:7px 12px;border-radius:10px;background:var(--bg3);border:1px solid var(--border);color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;font-family:'Cairo',sans-serif;transition:all .2s}
+.comp-btn:hover{color:var(--accent2);border-color:var(--accent)}
+.btn-primary{margin-right:auto;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;padding:8px 20px;border-radius:10px;font-weight:700;font-size:14px;cursor:pointer;font-family:'Cairo',sans-serif;transition:all .2s;box-shadow:0 4px 16px var(--accent-glow)}
+.btn-primary:hover{transform:translateY(-1px)}
+.btn-primary:disabled{opacity:.6;cursor:not-allowed;transform:none}
+/* POST */
+.post{background:var(--surface);border:1px solid var(--border);border-radius:18px;margin-bottom:14px;overflow:hidden;transition:border-color .2s}
+.post:hover{border-color:var(--border2)}
+.post-header{display:flex;align-items:center;gap:10px;padding:14px 16px 10px}
+.post-user{flex:1}
+.post-name{font-size:14px;font-weight:700;color:var(--text)}
+.post-handle{font-size:12px;color:var(--text3)}
+.post-body{padding:0 16px 12px;font-size:14px;line-height:1.7;color:var(--text)}
+.hashtag{color:var(--accent2);cursor:pointer}
+.post-media{width:100%;max-height:400px;object-fit:cover;display:block}
+.post-actions{display:flex;align-items:center;gap:4px;padding:8px 12px 12px;border-top:1px solid var(--border);margin-top:8px}
+.act-btn{display:flex;align-items:center;gap:5px;padding:7px 10px;border-radius:10px;cursor:pointer;color:var(--text2);font-size:13px;font-weight:600;transition:all .2s;border:none;background:transparent;font-family:'Cairo',sans-serif}
+.act-btn:hover{background:var(--bg3);color:var(--text)}
+.act-btn.liked{color:var(--red)}.act-btn.liked:hover{background:rgba(255,92,122,0.1)}
+.act-btn.reposted{color:var(--green)}
+.act-icon{font-size:17px}
+/* COMMENTS */
+.cmts{padding:0 14px 12px;border-top:1px solid var(--border)}
+.cmt{display:flex;gap:8px;margin-top:10px;align-items:flex-start}
+.cmt-body{flex:1;background:var(--bg3);border-radius:12px;padding:8px 12px;font-size:13px}
+.cmt-name{font-weight:700;color:var(--text);font-size:12px}
+.cmt-text{color:var(--text2);margin-top:2px}
+.cmt-input-row{display:flex;gap:8px;align-items:center;margin-top:10px}
+.cmt-input{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:7px 14px;color:var(--text);font-family:'Cairo',sans-serif;font-size:13px;outline:none;direction:rtl;transition:border-color .2s}
+.cmt-input:focus{border-color:var(--accent)}.cmt-input::placeholder{color:var(--text3)}
+.cmt-send{width:34px;height:34px;border-radius:50%;background:var(--accent);border:none;cursor:pointer;color:#fff;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.cmt-send:hover{transform:scale(1.05)}
+/* EXPLORE */
+.explore-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;border-radius:12px;overflow:hidden}
+.exp-item{aspect-ratio:1;overflow:hidden;cursor:pointer;position:relative;background:var(--bg3)}
+.exp-item img{width:100%;height:100%;object-fit:cover;transition:transform .3s}
+.exp-item:hover img{transform:scale(1.05)}
+.exp-ov{position:absolute;inset:0;background:rgba(0,0,0,0);display:flex;align-items:center;justify-content:center;transition:background .2s;gap:12px;font-size:14px;font-weight:700;color:#fff}
+.exp-item:hover .exp-ov{background:rgba(0,0,0,0.45)}
+/* MISC */
+.section-title{font-size:16px;font-weight:800;color:var(--text)}
+.trending-item{padding:12px 14px;border-radius:12px;cursor:pointer;transition:background .2s;display:flex;align-items:center;justify-content:space-between}
+.trending-item:hover{background:var(--bg3)}
+.trending-tag{font-size:14px;font-weight:700;color:var(--text)}
+.trending-count{font-size:12px;color:var(--text3);margin-top:2px}
+.trending-num{font-size:22px;font-weight:900;color:var(--border2);font-family:'Syne',sans-serif}
+.page-header{display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.page-title{font-size:22px;font-weight:900}
+.theme-toggle{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:var(--bg3);border:1px solid var(--border);font-size:16px;transition:all .2s;color:var(--text2)}
+.theme-toggle:hover{background:var(--surface2)}
+.btn-outline{padding:8px 20px;border-radius:10px;border:1px solid var(--border2);color:var(--text);font-size:13px;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif;background:transparent;transition:all .2s}
+.btn-outline:hover{background:var(--bg3)}
+.chip{display:inline-flex;align-items:center;padding:4px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:20px;font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;transition:all .2s}
+.chip.active,.chip:hover{background:var(--accent-glow);border-color:var(--accent);color:var(--accent2)}
+.profile-tab{padding:12px 20px;font-size:14px;font-weight:700;cursor:pointer;color:var(--text3);border-bottom:2px solid transparent;transition:all .2s}
+.profile-tab.active{color:var(--accent2);border-bottom-color:var(--accent)}
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:50%;transform:translateX(50%);background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:10px 20px;font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,0.3);z-index:2000;animation:slideUp .3s ease;display:flex;align-items:center;gap:8px}
+/* LOADING */
+.loading-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:9999;flex-direction:column;gap:16px;transition:opacity .3s}
+.spinner{width:40px;height:40px;border:3px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+.spinner-sm{width:20px;height:20px;border-width:2px;display:inline-block;vertical-align:middle}
+/* AUTH */
+.auth-screen{position:fixed;inset:0;background:var(--bg);display:flex;z-index:500;overflow:hidden}
+.auth-left{flex:1;background:linear-gradient(135deg,#1a1040,#0d0d1a,#1a0d2e);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;position:relative;overflow:hidden}
+.auth-right{width:440px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 40px;background:var(--surface);border-right:1px solid var(--border);overflow-y:auto}
+.input-group{margin-bottom:14px;width:100%}
+.input-label{font-size:13px;font-weight:700;color:var(--text2);margin-bottom:6px;display:block}
+.input-field{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px 14px;color:var(--text);font-family:'Cairo',sans-serif;font-size:14px;outline:none;direction:rtl;transition:border-color .2s,box-shadow .2s}
+.input-field:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+.auth-btn{width:100%;padding:13px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:15px;font-weight:800;cursor:pointer;border:none;font-family:'Cairo',sans-serif;box-shadow:0 6px 24px var(--accent-glow);transition:all .2s;margin-bottom:12px}
+.auth-btn:hover{transform:translateY(-2px)}.auth-btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.auth-switch{font-size:13px;color:var(--text2);text-align:center}
+.auth-switch span{color:var(--accent2);cursor:pointer;font-weight:700}
+.error-msg{background:rgba(255,92,122,0.1);border:1px solid rgba(255,92,122,0.3);color:var(--red);padding:10px 14px;border-radius:10px;font-size:13px;margin-bottom:12px;text-align:center}
+/* MODAL OVERLAY */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(8px);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn .2s}
+/* ANIMATIONS */
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* RESPONSIVE */
+@media(max-width:1100px){.right-panel{display:none}}
+@media(max-width:768px){
+  .sidebar{display:none}.topbar{display:flex}.bottom-nav{display:flex}
+  .feed-area{padding:16px 12px;padding-top:72px;padding-bottom:72px}
+  .auth-left{display:none}.auth-right{width:100%}
+}
+</style>
+</head>
+<body>
+
+<div class="loading-screen" id="loading">
+  <div class="spinner"></div>
+  <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:900;background:linear-gradient(135deg,var(--accent2),var(--warm));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Wasla - وصلة</div>
+</div>
+
+<div id="app"></div>
+
+<script>
+// ============================
+// FIREBASE
+// ============================
+firebase.initializeApp({
+  apiKey:"AIzaSyAwmXIlpdKXE_GTQMoQCFZJXIIVRTEcMhk",
+  authDomain:"codeacademy-fdea6.firebaseapp.com",
+  projectId:"codeacademy-fdea6",
+  storageBucket:"codeacademy-fdea6.firebasestorage.app",
+  messagingSenderId:"499595636893",
+  appId:"1:499595636893:web:25d831a8dcd652e579a474"
+});
+const auth=firebase.auth();
+const db=firebase.firestore();
+
+// ============================
+// STATE
+// ============================
+const COLORS=['#7c5cfc','#ff8c42','#ff6eb4','#2dd4a0','#5cb8ff','#ff5c7a','#ffa862'];
+const TRENDING=[
+  {tag:'#ذكاء_اصطناعي',count:'٤٢.٣K منشور',num:'01'},
+  {tag:'#تطوير_الذات',count:'٢٨.١K منشور',num:'02'},
+  {tag:'#تقنية_2025',count:'١٩.٧K منشور',num:'03'},
+  {tag:'#سفر_العالم',count:'١٤.٥K منشور',num:'04'},
+  {tag:'#قراءة',count:'١١.٢K منشور',num:'05'},
+];
+const EXPLORE_IMGS=[
+  {url:'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=300&q=80',l:'4.2K',c:'312'},
+  {url:'https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?w=300&q=80',l:'2.8K',c:'187'},
+  {url:'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?w=300&q=80',l:'6.1K',c:'421'},
+  {url:'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=300&q=80',l:'3.4K',c:'256'},
+  {url:'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=300&q=80',l:'1.9K',c:'143'},
+  {url:'https://images.unsplash.com/photo-1501854140801-50d01698950b?w=300&q=80',l:'8.7K',c:'634'},
+  {url:'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&q=80',l:'5.3K',c:'389'},
+  {url:'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=300&q=80',l:'3.1K',c:'218'},
+  {url:'https://images.unsplash.com/photo-1494500764479-0c8f2919a3d8?w=300&q=80',l:'7.2K',c:'512'},
+];
+
+let S={
+  page:'feed', theme:'dark',
+  currentUser:null, currentProfile:null,
+  posts:[], loadingPosts:true,
+  openComments:{}, commentsData:{},
+  likedPosts:{},
+  composerText:'', newComment:{},
+  profileTab:'posts',
+  authMode:'login', authError:'', authLoading:false,
+  toast:null,
+};
+
+let unsubPosts=null;
+
+// ============================
+// HELPERS
+// ============================
+const gi=n=>n?n.split(' ').map(x=>x[0]).join('').slice(0,2):'?';
+const fn=n=>{if(!n&&n!==0)return 0;if(n>=1000)return(n/1000).toFixed(1)+'K';return n};
+const rc=()=>COLORS[Math.floor(Math.random()*COLORS.length)];
+function ta(ts){
+  if(!ts)return'الآن';
+  const d=ts.toDate?ts.toDate():new Date(ts);
+  const diff=Math.floor((Date.now()-d)/1000);
+  if(diff<60)return'الآن';
+  if(diff<3600)return`منذ ${Math.floor(diff/60)} د`;
+  if(diff<86400)return`منذ ${Math.floor(diff/3600)} س`;
+  return`منذ ${Math.floor(diff/86400)} يوم`;
+}
+function toast(msg,icon='✅'){
+  S.toast={msg,icon};r();
+  setTimeout(()=>{S.toast=null;r();},2800);
+}
+
+// ============================
+// FIREBASE AUTH
+// ============================
+auth.onAuthStateChanged(async user=>{
+  const el=document.getElementById('loading');
+  if(el)el.style.display='none';
+  if(user){
+    S.currentUser=user;
+    const doc=await db.collection('wasla_profiles').doc(user.uid).get();
+    S.currentProfile=doc.exists?doc.data():{name:user.displayName||'مستخدم',handle:user.email.split('@')[0],color:rc(),bio:'',followers:0,following:0};
+    loadPosts();
+  } else {
+    S.currentUser=null; S.currentProfile=null;
+    S.posts=[]; S.loadingPosts=false;
+  }
+  r();
+});
+
+function loadPosts(){
+  if(unsubPosts)unsubPosts();
+  S.loadingPosts=true;
+  unsubPosts=db.collection('wasla_posts')
+    .orderBy('createdAt','desc').limit(50)
+    .onSnapshot(snap=>{
+      S.posts=snap.docs.map(d=>({id:d.id,...d.data(),_liked:S.likedPosts[d.id]||false}));
+      S.loadingPosts=false;
+      r();
+      refreshLikes();
+    },err=>{console.error(err);S.loadingPosts=false;r();});
+}
+
+async function refreshLikes(){
+  if(!S.currentUser)return;
+  const uid=S.currentUser.uid;
+  const ids=S.posts.map(p=>p.id);
+  for(const id of ids){
+    const doc=await db.collection('wasla_likes').doc(uid+'_'+id).get();
+    S.likedPosts[id]=doc.exists;
+  }
+  S.posts=S.posts.map(p=>({...p,_liked:S.likedPosts[p.id]||false}));
+  r();
+}
+
+// AUTH ACTIONS
+async function doLogin(){
+  const e=document.getElementById('auth-email')?.value?.trim();
+  const p=document.getElementById('auth-pass')?.value;
+  if(!e||!p){S.authError='أدخل الإيميل وكلمة المرور';r();return;}
+  S.authLoading=true;S.authError='';r();
+  try{await auth.signInWithEmailAndPassword(e,p);}
+  catch(err){
+    S.authLoading=false;
+    S.authError=err.code==='auth/user-not-found'||err.code==='auth/wrong-password'||err.code==='auth/invalid-credential'?'الإيميل أو كلمة المرور غلط ❌':err.code==='auth/too-many-requests'?'حاول بعد شوية ⏳':'حدث خطأ، حاول مجدداً';
+    r();
+  }
+}
+
+async function doRegister(){
+  const name=document.getElementById('reg-name')?.value?.trim();
+  const handle=document.getElementById('reg-handle')?.value?.trim().replace(/^@/,'').replace(/\s/g,'');
+  const email=document.getElementById('reg-email')?.value?.trim();
+  const pass=document.getElementById('reg-pass')?.value;
+  if(!name||!handle||!email||!pass){S.authError='من فضلك اكمل كل الحقول';r();return;}
+  if(pass.length<6){S.authError='كلمة المرور ٦ أحرف على الأقل';r();return;}
+  S.authLoading=true;S.authError='';r();
+  try{
+    const ex=await db.collection('wasla_profiles').where('handle','==',handle).get();
+    if(!ex.empty){S.authError='اسم المستخدم ده موجود ❌';S.authLoading=false;r();return;}
+    const cred=await auth.createUserWithEmailAndPassword(email,pass);
+    await cred.user.updateProfile({displayName:name});
+    const color=rc();
+    const profile={name,handle,email,color,bio:'',followers:0,following:0,posts:0,createdAt:firebase.firestore.FieldValue.serverTimestamp()};
+    await db.collection('wasla_profiles').doc(cred.user.uid).set(profile);
+    S.currentProfile=profile;
+    toast('أهلاً بك في Wasla - وصلة! 🎉');
+  }catch(err){
+    S.authLoading=false;
+    S.authError=err.code==='auth/email-already-in-use'?'الإيميل ده مستخدم بالفعل ❌':'حدث خطأ، حاول مجدداً';
+    r();
+  }
+}
+
+function doLogout(){auth.signOut();toast('تم تسجيل الخروج 👋');}
+
+// POST ACTIONS
+async function createPost(){
+  const text=S.composerText.trim();
+  if(!text){toast('اكتب شيئاً أولاً ✍️','⚠️');return;}
+  const p=S.currentProfile;
+  const btn=document.getElementById('post-btn');
+  if(btn)btn.disabled=true;
+  try{
+    await db.collection('wasla_posts').add({
+      userId:S.currentUser.uid,
+      userName:p.name,
+      userHandle:p.handle,
+      userColor:p.color||'#7c5cfc',
+      text,
+      likes:0,comments:0,reposts:0,
+      createdAt:firebase.firestore.FieldValue.serverTimestamp()
+    });
+    S.composerText='';
+    toast('تم نشر منشورك! 🎉');
+  }catch(e){toast('حدث خطأ، حاول مجدداً','❌');}
+  if(btn)btn.disabled=false;
+}
+
+async function toggleLike(postId){
+  if(!S.currentUser)return;
+  const uid=S.currentUser.uid;
+  const likeRef=db.collection('wasla_likes').doc(uid+'_'+postId);
+  const postRef=db.collection('wasla_posts').doc(postId);
+  const ex=await likeRef.get();
+  const idx=S.posts.findIndex(p=>p.id===postId);
+  if(ex.exists){
+    await likeRef.delete();
+    await postRef.update({likes:firebase.firestore.FieldValue.increment(-1)});
+    S.likedPosts[postId]=false;
+    if(idx>-1){S.posts[idx]._liked=false;S.posts[idx].likes=Math.max(0,(S.posts[idx].likes||1)-1);}
+  } else {
+    await likeRef.set({userId:uid,postId,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+    await postRef.update({likes:firebase.firestore.FieldValue.increment(1)});
+    S.likedPosts[postId]=true;
+    if(idx>-1){S.posts[idx]._liked=true;S.posts[idx].likes=(S.posts[idx].likes||0)+1;}
+    // notif
+    const post=S.posts[idx];
+    if(post&&post.userId!==uid){
+      db.collection('wasla_notifications').add({toUserId:post.userId,fromUserName:S.currentProfile.name,type:'like',text:'أعجب بمنشورك',read:false,createdAt:firebase.firestore.FieldValue.serverTimestamp()}).catch(()=>{});
+    }
+  }
+  r();
+}
+
+async function toggleComments(postId){
+  S.openComments[postId]=!S.openComments[postId];
+  if(S.openComments[postId]){
+    const snap=await db.collection('wasla_comments').where('postId','==',postId).orderBy('createdAt','asc').get();
+    S.commentsData[postId]=snap.docs.map(d=>({id:d.id,...d.data()}));
+  }
+  r();
+}
+
+async function addComment(postId){
+  const text=(S.newComment[postId]||'').trim();
+  if(!text)return;
+  const p=S.currentProfile;
+  await db.collection('wasla_comments').add({postId,userId:S.currentUser.uid,userName:p.name,text,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+  await db.collection('wasla_posts').doc(postId).update({comments:firebase.firestore.FieldValue.increment(1)});
+  S.newComment[postId]='';
+  const idx=S.posts.findIndex(p=>p.id===postId);
+  if(idx>-1)S.posts[idx].comments=(S.posts[idx].comments||0)+1;
+  const snap=await db.collection('wasla_comments').where('postId','==',postId).orderBy('createdAt','asc').get();
+  S.commentsData[postId]=snap.docs.map(d=>({id:d.id,...d.data()}));
+  r();
+}
+
+async function repost(postId){
+  const idx=S.posts.findIndex(p=>p.id===postId);
+  await db.collection('wasla_posts').doc(postId).update({reposts:firebase.firestore.FieldValue.increment(1)});
+  if(idx>-1)S.posts[idx].reposts=(S.posts[idx].reposts||0)+1;
+  toast('تم إعادة النشر 🔄');r();
+}
+
+async function deletePost(postId){
+  if(!confirm('هل تريد حذف المنشور؟'))return;
+  await db.collection('wasla_posts').doc(postId).delete();
+  toast('تم الحذف 🗑️');
+}
+
+// ============================
+// RENDER
+// ============================
+function r(){
+  document.getElementById('app').innerHTML=buildApp();
+  // scroll chat
+  const cm=document.getElementById('cms');
+  if(cm)cm.scrollTop=cm.scrollHeight;
+}
+
+function buildApp(){
+  if(!S.currentUser)return buildAuth();
+  return `
+    ${S.toast?`<div class="toast">${S.toast.icon} ${S.toast.msg}</div>`:''}
+    <div class="app ${S.theme==='light'?'light':''}">
+      ${buildSidebar()}${buildTopbar()}
+      <div class="main">
+        ${S.page==='messages'?buildMessages():`<div class="feed-area">${
+          S.page==='feed'?buildFeed():
+          S.page==='explore'?buildExplore():
+          S.page==='notifications'?buildNotifs():
+          S.page==='profile'?buildProfile():''
+        }</div>`}
+        ${S.page!=='messages'?buildRightPanel():''}
+      </div>
+      ${buildBottomNav()}
+    </div>
+  `;
+}
+
+// AUTH
+function buildAuth(){
+  const isLogin=S.authMode==='login';
+  return `
+    <div class="auth-screen ${S.theme==='light'?'light':''}">
+      <div class="auth-left">
+        <div style="position:absolute;width:400px;height:400px;border-radius:50%;background:var(--accent);top:-100px;right:-100px;filter:blur(80px);opacity:.1;pointer-events:none"></div>
+        <div style="position:absolute;width:300px;height:300px;border-radius:50%;background:var(--warm);bottom:-50px;left:-50px;filter:blur(80px);opacity:.1;pointer-events:none"></div>
+        <div style="position:relative;z-index:1;text-align:center">
+          <div style="font-family:'Syne',sans-serif;font-size:52px;font-weight:900;line-height:1;background:linear-gradient(135deg,#9d7ffe,#ff8c42);-webkit-background-clip:text;-webkit-text-fill-color:transparent">Wasla</div>
+          <div style="font-size:30px;font-weight:800;background:linear-gradient(135deg,#9d7ffe,#ff8c42);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:16px">وصلة</div>
+          <div style="color:rgba(255,255,255,.6);font-size:15px;max-width:300px;line-height:1.6">ابقَ على تواصل مع من تحب، شارك لحظاتك، واكتشف عالماً جديداً</div>
+          <div style="display:flex;gap:10px;justify-content:center;margin-top:32px;flex-wrap:wrap">
+            ${['🌍 تواصل عالمي','📸 شارك لحظاتك','💬 دردش بحرية','🚀 محتوى ترندي'].map(t=>`<div style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:7px 14px;font-size:12px;color:rgba(255,255,255,.7)">${t}</div>`).join('')}
+          </div>
+        </div>
+      </div>
+      <div class="auth-right">
+        <div style="margin-bottom:24px;text-align:center;width:100%">
+          <div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:900;background:linear-gradient(135deg,var(--accent2),var(--warm));-webkit-background-clip:text;-webkit-text-fill-color:transparent">Wasla - وصلة</div>
+          <div style="color:var(--text2);font-size:14px;margin-top:4px">${isLogin?'أهلاً بك مجدداً 👋':'انضم إلى وصلة اليوم 🚀'}</div>
+        </div>
+        ${S.authError?`<div class="error-msg">${S.authError}</div>`:''}
+        ${isLogin?`
+          <div class="input-group"><label class="input-label">البريد الإلكتروني</label><input class="input-field" type="email" id="auth-email" placeholder="you@example.com" dir="ltr" onkeydown="if(event.key==='Enter')doLogin()"></div>
+          <div class="input-group"><label class="input-label">كلمة المرور</label><input class="input-field" type="password" id="auth-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+          <button class="auth-btn" onclick="doLogin()" ${S.authLoading?'disabled':''}>${S.authLoading?'<span class="spinner spinner-sm"></span> جاري الدخول...':'تسجيل الدخول'}</button>
+          <div class="auth-switch">ليس لديك حساب؟ <span onclick="switchAuth('register')">سجّل الآن</span></div>
+        `:`
+          <div class="input-group"><label class="input-label">الاسم الكامل</label><input class="input-field" type="text" id="reg-name" placeholder="أحمد محمد"></div>
+          <div class="input-group"><label class="input-label">اسم المستخدم</label><input class="input-field" type="text" id="reg-handle" placeholder="ahmed123" dir="ltr"></div>
+          <div class="input-group"><label class="input-label">البريد الإلكتروني</label><input class="input-field" type="email" id="reg-email" placeholder="you@example.com" dir="ltr"></div>
+          <div class="input-group"><label class="input-label">كلمة المرور</label><input class="input-field" type="password" id="reg-pass" placeholder="٦ أحرف على الأقل" onkeydown="if(event.key==='Enter')doRegister()"></div>
+          <button class="auth-btn" onclick="doRegister()" ${S.authLoading?'disabled':''}>${S.authLoading?'<span class="spinner spinner-sm"></span> جاري الإنشاء...':'إنشاء حساب'}</button>
+          <div class="auth-switch">لديك حساب؟ <span onclick="switchAuth('login')">سجّل دخولك</span></div>
+        `}
+        <div style="margin-top:16px;display:flex;justify-content:center"><div class="theme-toggle" onclick="toggleTheme()" style="width:auto;padding:0 12px;gap:6px">${S.theme==='dark'?'☀️ وضع نهاري':'🌙 وضع ليلي'}</div></div>
+      </div>
+    </div>
+  `;
+}
+
+// SIDEBAR
+function buildSidebar(){
+  const p=S.currentProfile||{};
+  const nav=[{id:'feed',i:'🏠',l:'الرئيسية'},{id:'explore',i:'🔍',l:'استكشاف'},{id:'messages',i:'💬',l:'الرسائل'},{id:'notifications',i:'🔔',l:'الإشعارات'},{id:'profile',i:'👤',l:'حسابي'}];
+  return `
+    <nav class="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-icon">W</div>
+        <div class="logo-text">Wasla - وصلة</div>
+        <div style="margin-right:auto"><div class="theme-toggle" onclick="toggleTheme()">${S.theme==='dark'?'☀️':'🌙'}</div></div>
+      </div>
+      ${nav.map(n=>`<div class="nav-item ${S.page===n.id?'active':''}" onclick="nav('${n.id}')"><span class="nav-icon">${n.i}</span><span>${n.l}</span></div>`).join('')}
+      <div class="sidebar-bottom">
+        <div class="user-mini">
+          <div class="avatar-ph" style="width:38px;height:38px;font-size:13px;background:${p.color||'var(--accent)'}" onclick="nav('profile')">${gi(p.name)}</div>
+          <div style="flex:1;min-width:0" onclick="nav('profile')">
+            <div class="user-mini-name">${p.name||'مستخدم'}</div>
+            <div class="user-mini-handle">@${p.handle||''}</div>
+          </div>
+          <span style="cursor:pointer;font-size:18px;color:var(--text3)" title="تسجيل الخروج" onclick="doLogout()">🚪</span>
+        </div>
+      </div>
+    </nav>
+  `;
+}
+
+function buildTopbar(){
+  const p=S.currentProfile||{};
+  return `
+    <div class="topbar">
+      <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:900;background:linear-gradient(135deg,var(--accent2),var(--warm));-webkit-background-clip:text;-webkit-text-fill-color:transparent">Wasla - وصلة</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div class="theme-toggle" onclick="toggleTheme()">${S.theme==='dark'?'☀️':'🌙'}</div>
+        <div class="avatar-ph" style="width:34px;height:34px;font-size:12px;cursor:pointer;background:${p.color||'var(--accent)'}" onclick="nav('profile')">${gi(p.name)}</div>
+      </div>
+    </div>
+  `;
+}
+
+function buildBottomNav(){
+  const items=[{id:'feed',i:'🏠',l:'رئيسية'},{id:'explore',i:'🔍',l:'استكشاف'},{id:'messages',i:'💬',l:'رسائل'},{id:'notifications',i:'🔔',l:'إشعارات'},{id:'profile',i:'👤',l:'حسابي'}];
+  return `<nav class="bottom-nav">${items.map(n=>`<div class="bnav-item ${S.page===n.id?'active':''}" onclick="nav('${n.id}')"><div class="bnav-icon">${n.i}</div><div>${n.l}</div></div>`).join('')}</nav>`;
+}
+
+// FEED
+function buildFeed(){
+  const p=S.currentProfile||{};
+  return `
+    <div class="composer">
+      <div class="composer-row">
+        <div class="avatar-ph" style="width:40px;height:40px;font-size:13px;background:${p.color||'var(--accent)'}">${gi(p.name)}</div>
+        <textarea id="composer-textarea" placeholder="ما الذي يدور في ذهنك؟ ✍️" oninput="S.composerText=this.value">${S.composerText}</textarea>
+      </div>
+      <div class="composer-actions">
+        <button class="comp-btn">📷 صورة</button>
+        <button class="comp-btn">😊 إيموجي</button>
+        <button class="btn-primary" id="post-btn" onclick="createPost()">نشر ✨</button>
+      </div>
+    </div>
+    ${S.loadingPosts?`<div style="text-align:center;padding:48px;color:var(--text3)"><div class="spinner" style="margin:auto"></div><div style="margin-top:12px;font-size:14px">جاري تحميل المنشورات...</div></div>`
+    :S.posts.length===0?`
+      <div style="text-align:center;padding:48px 24px;color:var(--text3)">
+        <div style="font-size:52px;margin-bottom:16px">✨</div>
+        <div style="font-size:17px;font-weight:700;color:var(--text2);margin-bottom:8px">مرحباً في Wasla - وصلة!</div>
+        <div style="font-size:14px;line-height:1.7">انشر أول منشور أو تابع أشخاصاً لترى محتواهم</div>
+        <div style="display:flex;gap:10px;justify-content:center;margin-top:20px;flex-wrap:wrap">
+          <button class="btn-primary" onclick="document.getElementById('composer-textarea').focus()">✍️ انشر الآن</button>
+          <button class="btn-outline" onclick="nav('explore')">🔍 استكشف</button>
+        </div>
+      </div>
+    `:S.posts.map(buildPost).join('')}
+  `;
+}
+
+function buildPost(post){
+  const isMe=post.userId===S.currentUser?.uid;
+  const liked=post._liked||S.likedPosts[post.id]||false;
+  const cmtsOpen=S.openComments[post.id];
+  const cmts=S.commentsData[post.id]||[];
+  return `
+    <div class="post">
+      <div class="post-header">
+        <div class="avatar-ph" style="width:42px;height:42px;font-size:13px;background:${post.userColor||'#7c5cfc'}">${gi(post.userName)}</div>
+        <div class="post-user">
+          <div class="post-name">${escHtml(post.userName)}</div>
+          <div class="post-handle">@${escHtml(post.userHandle||'')} · ${ta(post.createdAt)}</div>
+        </div>
+        ${isMe?`<button class="btn-outline" style="font-size:12px;padding:4px 10px;color:var(--red);border-color:rgba(255,92,122,.4)" onclick="deletePost('${post.id}')">🗑️</button>`:''}
+      </div>
+      <div class="post-body">${escHtml(post.text).replace(/(#\S+)/g,'<span class="hashtag">$1</span>').replace(/\n/g,'<br>')}</div>
+      ${post.imageUrl?`<img class="post-media" src="${post.imageUrl}" loading="lazy" alt="">` : ''}
+      <div class="post-actions">
+        <button class="act-btn ${liked?'liked':''}" onclick="toggleLike('${post.id}')"><span class="act-icon">${liked?'❤️':'🤍'}</span><span>${fn(post.likes)}</span></button>
+        <button class="act-btn" onclick="toggleComments('${post.id}')"><span class="act-icon">💬</span><span>${fn(post.comments)}</span></button>
+        <button class="act-btn" onclick="repost('${post.id}')"><span class="act-icon">🔄</span><span>${fn(post.reposts)}</span></button>
+        <button class="act-btn" style="margin-right:auto" onclick="toast('تم نسخ الرابط 🔗')"><span class="act-icon">📤</span></button>
+      </div>
+      ${cmtsOpen?`
+        <div class="cmts">
+          ${cmts.map(c=>`
+            <div class="cmt">
+              <div class="avatar-ph" style="width:30px;height:30px;font-size:11px">${gi(c.userName)}</div>
+              <div class="cmt-body"><div class="cmt-name">${escHtml(c.userName)}</div><div class="cmt-text">${escHtml(c.text)}</div></div>
+            </div>
+          `).join('')}
+          <div class="cmt-input-row">
+            <div class="avatar-ph" style="width:30px;height:30px;font-size:11px;background:${S.currentProfile?.color||'var(--accent)'}">${gi(S.currentProfile?.name)}</div>
+            <input class="cmt-input" placeholder="اكتب تعليقاً..." value="${escAttr(S.newComment[post.id]||'')}" oninput="S.newComment['${post.id}']=this.value" onkeydown="if(event.key==='Enter')addComment('${post.id}')">
+            <button class="cmt-send" onclick="addComment('${post.id}')">↑</button>
+          </div>
+        </div>
+      `:''}
+    </div>
+  `;
+}
+
+// EXPLORE
+function buildExplore(){
+  return `
+    <div class="page-header"><div class="page-title">استكشاف 🔍</div></div>
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:24px;padding:10px 16px;display:flex;align-items:center;gap:10px;margin-bottom:20px">
+      <span>🔍</span><input style="flex:1;background:transparent;border:none;color:var(--text);font-family:'Cairo',sans-serif;font-size:14px;outline:none;direction:rtl" placeholder="ابحث عن أشخاص أو هاشتاقات...">
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
+      ${['#ترند','#تقنية','#سفر','#قراءة','#فن','#رياضة'].map((t,i)=>`<div class="chip ${i===0?'active':''}">${t}</div>`).join('')}
+    </div>
+    <div style="font-size:16px;font-weight:800;margin-bottom:12px">🔥 محتوى رائج</div>
+    <div class="explore-grid" style="margin-bottom:24px">
+      ${EXPLORE_IMGS.map(img=>`<div class="exp-item"><img src="${img.url}" loading="lazy" alt=""><div class="exp-ov"><span>❤️ ${img.l}</span><span>💬 ${img.c}</span></div></div>`).join('')}
+    </div>
+  `;
+}
+
+// NOTIFICATIONS
+function buildNotifs(){
+  return `
+    <div class="page-header"><div class="page-title">الإشعارات 🔔</div></div>
+    <div style="text-align:center;padding:48px;color:var(--text3)">
+      <div style="font-size:48px;margin-bottom:12px">🔔</div>
+      <div style="font-size:15px;font-weight:700;color:var(--text2)">مفيش إشعارات دلوقتي</div>
+      <div style="font-size:13px;margin-top:6px">لما حد يعجبه منشورك أو يعلق هيظهر هنا</div>
+    </div>
+  `;
+}
+
+// MESSAGES
+function buildMessages(){
+  return `
+    <div style="flex:1;display:flex;overflow:hidden">
+      <div style="width:300px;border-left:1px solid var(--border);overflow-y:auto;flex-shrink:0">
+        <div style="padding:16px;border-bottom:1px solid var(--border)"><div style="font-size:16px;font-weight:800">الرسائل 💬</div></div>
+        <div style="text-align:center;padding:40px 20px;color:var(--text3)"><div style="font-size:36px;margin-bottom:8px">💬</div><div style="font-size:13px">الرسائل قريباً</div></div>
+      </div>
+      <div style="flex:1;display:flex;align-items:center;justify-content:center">
+        <div style="text-align:center;color:var(--text3)">
+          <div style="font-size:48px;margin-bottom:12px">💬</div>
+          <div style="font-weight:700;font-size:16px;color:var(--text2)">الرسائل الخاصة</div>
+          <div style="font-size:13px;margin-top:6px">قريباً بإذن الله 🚀</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// PROFILE
+function buildProfile(){
+  const p=S.currentProfile||{};
+  const myPosts=S.posts.filter(pt=>pt.userId===S.currentUser?.uid);
+  return `
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:18px;margin-bottom:16px;overflow:hidden">
+      <div style="height:180px;background:linear-gradient(135deg,${p.color||'#7c5cfc'},#ff8c42,#ff6eb4);position:relative">
+        <div style="position:absolute;bottom:-40px;right:24px">
+          <div class="avatar-ph" style="width:84px;height:84px;font-size:28px;border:4px solid var(--bg2);background:${p.color||'var(--accent)'}">${gi(p.name)}</div>
+        </div>
+        <button class="btn-outline" style="position:absolute;top:12px;left:12px;font-size:12px;padding:5px 12px;background:rgba(0,0,0,.3);border-color:rgba(255,255,255,.3);color:#fff" onclick="toast('قريباً: تغيير الغلاف ✏️','ℹ️')">✏️ تعديل</button>
+      </div>
+      <div style="padding:52px 24px 20px">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px">
+          <div>
+            <div style="font-size:22px;font-weight:800">${escHtml(p.name||'مستخدم')}</div>
+            <div style="font-size:14px;color:var(--text3);margin-top:2px">@${escHtml(p.handle||'')}</div>
+            <div style="font-size:14px;color:var(--text2);margin-top:8px">${escHtml(p.bio||'لا توجد نبذة بعد')}</div>
+          </div>
+          <button class="btn-outline" onclick="toast('قريباً: تعديل الحساب ✏️','ℹ️')">✏️ تعديل الحساب</button>
+        </div>
+        <div style="display:flex;gap:24px;margin-top:16px">
+          <div style="text-align:center"><div style="font-size:20px;font-weight:800;font-family:'Syne',sans-serif">${myPosts.length}</div><div style="font-size:12px;color:var(--text3)">منشور</div></div>
+          <div style="text-align:center"><div style="font-size:20px;font-weight:800;font-family:'Syne',sans-serif">${fn(p.followers||0)}</div><div style="font-size:12px;color:var(--text3)">متابع</div></div>
+          <div style="text-align:center"><div style="font-size:20px;font-weight:800;font-family:'Syne',sans-serif">${fn(p.following||0)}</div><div style="font-size:12px;color:var(--text3)">يتابع</div></div>
+        </div>
+        <div style="margin-top:14px"><button class="btn-outline" style="color:var(--red);border-color:rgba(255,92,122,.4)" onclick="doLogout()">🚪 تسجيل الخروج</button></div>
+      </div>
+    </div>
+    <div style="display:flex;border-bottom:1px solid var(--border);margin-bottom:16px">
+      ${[['posts','📝 المنشورات'],['likes','❤️ الإعجابات']].map(([id,label])=>`<div class="profile-tab ${S.profileTab===id?'active':''}" onclick="S.profileTab='${id}';r()">${label}</div>`).join('')}
+    </div>
+    ${S.profileTab==='posts'?(myPosts.length===0?`<div style="text-align:center;color:var(--text3);padding:40px;font-size:14px">لا توجد منشورات بعد ✍️</div>`:myPosts.map(buildPost).join('')):`<div style="text-align:center;color:var(--text3);padding:40px;font-size:14px">قريباً ❤️</div>`}
+  `;
+}
+
+// RIGHT PANEL
+function buildRightPanel(){
+  return `
+    <div class="right-panel">
+      <div style="font-size:16px;font-weight:800;margin-bottom:14px">🔥 الهاشتاقات الرائجة</div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:8px;margin-bottom:16px">
+        ${TRENDING.map(t=>`<div class="trending-item"><div><div class="trending-tag">${t.tag}</div><div class="trending-count">${t.count}</div></div><div class="trending-num">${t.num}</div></div>`).join('')}
+      </div>
+      <div style="text-align:center;font-size:11px;color:var(--text3)">Wasla - وصلة © ٢٠٢٥<br><span style="color:var(--accent2);cursor:pointer">الشروط</span> · <span style="color:var(--accent2);cursor:pointer">الخصوصية</span></div>
+    </div>
+  `;
+}
+
+// ============================
+// UTILS
+// ============================
+function escHtml(str){return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function escAttr(str){return String(str||'').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
+function nav(page){S.page=page;r()}
+function toggleTheme(){S.theme=S.theme==='dark'?'light':'dark';r()}
+function switchAuth(mode){S.authMode=mode;S.authError='';r()}
+</script>
+</body>
+</html>
