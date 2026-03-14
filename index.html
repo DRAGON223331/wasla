@@ -177,15 +177,15 @@ const db=firebase.firestore();
 const CLOUDINARY_CLOUD='deelgvpv8';
 const CLOUDINARY_PRESET='waslaweb';
 
-async function uploadToCloudinary(file, folder='wasla'){
+async function uploadToCloudinary(file){
   const fd=new FormData();
   fd.append('file',file);
   fd.append('upload_preset',CLOUDINARY_PRESET);
-  fd.append('folder',folder);
   const res=await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`,{method:'POST',body:fd});
   const data=await res.json();
   if(data.secure_url)return data.secure_url;
-  throw new Error('Upload failed');
+  console.error('Cloudinary error:',data);
+  throw new Error(data.error?.message||'Upload failed');
 }
 
 // ============================
@@ -379,7 +379,7 @@ async function createPost(){
     let imageUrl=null;
     if(S.composerImage){
       S.composerImageUploading=true;r();
-      imageUrl=await uploadToCloudinary(S.composerImage,'wasla/posts');
+      imageUrl=await uploadToCloudinary(S.composerImage);
       S.composerImageUploading=false;
     }
     await db.collection('wasla_posts').add({
@@ -492,7 +492,7 @@ async function uploadProfilePhoto(){
     if(!file)return;
     toast('جاري رفع الصورة...','⏳');
     try{
-      const url=await uploadToCloudinary(file,'wasla/avatars');
+      const url=await uploadToCloudinary(file);
       await db.collection('wasla_profiles').doc(S.currentUser.uid).update({photoURL:url});
       S.currentProfile.photoURL=url;
       toast('تم تحديث صورة البروفايل ✅');r();
@@ -509,7 +509,7 @@ async function uploadCoverPhoto(){
     if(!file)return;
     toast('جاري رفع الغلاف...','⏳');
     try{
-      const url=await uploadToCloudinary(file,'wasla/covers');
+      const url=await uploadToCloudinary(file);
       await db.collection('wasla_profiles').doc(S.currentUser.uid).update({coverURL:url});
       S.currentProfile.coverURL=url;
       toast('تم تحديث صورة الغلاف ✅');r();
