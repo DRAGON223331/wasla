@@ -59,8 +59,8 @@ body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);trans
 .hashtag{color:var(--accent2);cursor:pointer}
 .post-media{width:100%;max-height:400px;object-fit:cover;display:block}
 .post-actions{display:flex;align-items:center;gap:4px;padding:8px 12px 12px;border-top:1px solid var(--border);margin-top:8px}
-.act-btn{display:flex;align-items:center;gap:5px;padding:7px 10px;border-radius:10px;cursor:pointer;color:var(--text2);font-size:13px;font-weight:600;transition:all .2s;border:none;background:transparent;font-family:'Cairo',sans-serif}
-.act-btn:hover{background:var(--bg3);color:var(--text)}
+.act-btn{display:flex;align-items:center;gap:5px;padding:7px 11px;border-radius:10px;cursor:pointer;color:var(--text2);font-size:13px;font-weight:700;transition:all .2s;border:none;background:transparent;font-family:'Cairo',sans-serif}
+.act-btn:hover{background:var(--bg3);color:var(--text);transform:translateY(-1px)}
 .act-btn.liked{color:var(--red)}.act-btn.liked:hover{background:rgba(255,92,122,0.1)}
 .act-btn.reposted{color:var(--green)}
 .act-icon{font-size:17px}
@@ -151,11 +151,27 @@ body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);trans
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 @keyframes spin{to{transform:rotate(360deg)}}
+@keyframes heartPop{0%{transform:scale(1)}50%{transform:scale(1.4)}100%{transform:scale(1)}}
+.act-btn.liked .act-icon{animation:heartPop .3s ease}
 @media(max-width:1100px){.right-panel{display:none}}
 @media(max-width:768px){
   .sidebar{display:none}.topbar{display:flex}.bottom-nav{display:flex}
   .feed-area{padding:16px 12px;padding-top:72px;padding-bottom:72px}
   .auth-left{display:none}.auth-right{width:100%}
+  /* Messages mobile fix */
+  .msg-wrapper{flex-direction:column!important}
+  .msg-list-panel{width:100%!important;border-left:none!important;border-bottom:1px solid var(--border)}
+  .msg-list-panel.has-active{display:none!important}
+  .msg-chat-panel{position:fixed!important;inset:56px 0 60px 0!important;z-index:150!important;background:var(--bg)!important;display:flex;flex-direction:column}
+  .msg-chat-panel.no-active{display:none!important}
+  /* Post actions mobile */
+  .post-actions{gap:2px!important;padding:6px 8px 10px!important}
+  .act-btn{padding:6px 7px!important;font-size:12px!important}
+  .act-icon{font-size:15px!important}
+  /* Composer mobile */
+  .composer{border-radius:14px!important;padding:12px!important}
+  /* Profile mobile */
+  .profile-tab{padding:10px 12px!important;font-size:13px!important}
 }
 </style>
 </head>
@@ -988,6 +1004,18 @@ async function addComment(postId){
   S.newComment[postId]='';
   const idx=S.posts.findIndex(p=>p.id===postId);
   if(idx>-1)S.posts[idx].comments=(S.posts[idx].comments||0)+1;
+  // Send notification to post owner
+  const post=S.posts[idx];
+  if(post&&post.userId!==S.currentUser.uid){
+    db.collection('wasla_notifications').add({
+      toUserId:post.userId,
+      fromUserName:S.currentProfile.name,
+      type:'comment',
+      text:'علّق على منشورك: '+text.slice(0,40),
+      read:false,
+      createdAt:firebase.firestore.FieldValue.serverTimestamp()
+    }).catch(()=>{});
+  }
   const snap=await db.collection('wasla_comments').where('postId','==',postId).orderBy('createdAt','asc').get();
   S.commentsData[postId]=snap.docs.map(d=>({id:d.id,...d.data()}));
   r();
@@ -1667,6 +1695,12 @@ function buildPost(post, allowDelete=true){
       </div>
       ${post.text?`<div class="post-body">${escHtml(post.text).replace(/(#\S+)/g,'<span class="hashtag">$1</span>').replace(/\n/g,'<br>')}</div>`:''}
       ${post.imageUrl?`<img class="post-media" src="${post.imageUrl}" loading="lazy" alt="" style="cursor:pointer" onclick="window.open('${post.imageUrl}','_blank')">` : ''}
+      ${(post.likes>0||post.comments>0||post.reposts>0)?`
+      <div style="display:flex;align-items:center;gap:12px;padding:6px 16px;color:var(--text3);font-size:12px;border-top:1px solid var(--border);margin-top:4px">
+        ${post.likes>0?`<span style="cursor:pointer;display:flex;align-items:center;gap:3px" onclick="toggleLike('${post.id}')"><span style="color:var(--red)">❤️</span> <b style="color:var(--text2)">${fn(post.likes)}</b> إعجاب</span>`:''}
+        ${post.comments>0?`<span style="cursor:pointer;display:flex;align-items:center;gap:3px" onclick="toggleComments('${post.id}')">💬 <b style="color:var(--text2)">${fn(post.comments)}</b> تعليق</span>`:''}
+        ${post.reposts>0?`<span style="display:flex;align-items:center;gap:3px">🔄 <b style="color:var(--text2)">${fn(post.reposts)}</b> إعادة نشر</span>`:''}
+      </div>`:''}
       <div class="post-actions">
         <button class="act-btn ${liked?'liked':''}" onclick="toggleLike('${post.id}')"><span class="act-icon">${liked?'❤️':'🤍'}</span><span>${fn(post.likes)}</span></button>
         <button class="act-btn" onclick="toggleComments('${post.id}')"><span class="act-icon">💬</span><span>${fn(post.comments)}</span></button>
@@ -1800,10 +1834,11 @@ function buildNotifs(){
 function buildMessages(){
   const myUid=S.currentUser?.uid;
   const p=S.currentProfile||{};
+  const hasActive=!!S.activeConvo;
   return `
-    <div style="flex:1;display:flex;overflow:hidden;height:100%">
+    <div class="msg-wrapper" style="flex:1;display:flex;overflow:hidden;height:100%">
       <!-- Conversations list -->
-      <div style="width:280px;border-left:1px solid var(--border);overflow-y:auto;flex-shrink:0;display:flex;flex-direction:column">
+      <div class="msg-list-panel ${hasActive?'has-active':''}" style="width:280px;border-left:1px solid var(--border);overflow-y:auto;flex-shrink:0;display:flex;flex-direction:column">
         <div style="padding:16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
           <div style="font-size:16px;font-weight:800">الرسائل 💬</div>
           <button class="theme-toggle" onclick="nav('explore')" title="ابحث عن شخص">✍️</button>
@@ -1848,7 +1883,7 @@ function buildMessages(){
       </div>
 
       <!-- Chat window -->
-      <div style="flex:1;display:flex;flex-direction:column;overflow:hidden">
+      <div class="msg-chat-panel ${hasActive?'':'no-active'}" style="flex:1;display:flex;flex-direction:column;overflow:hidden">
         ${!S.activeConvo?`
           <div style="flex:1;display:flex;align-items:center;justify-content:center">
             <div style="text-align:center;color:var(--text3)">
@@ -1860,7 +1895,7 @@ function buildMessages(){
           </div>
         `:`
           <!-- Chat header -->
-          <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--surface)">
+          <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--surface);flex-shrink:0">
             <button class="btn-outline" style="padding:4px 10px;font-size:12px" onclick="closeConvo()">←</button>
             <div class="avatar-ph" style="width:36px;height:36px;font-size:12px;cursor:pointer;background:${S.activeConvoProfile?.color||'#7c5cfc'}" onclick="viewProfile('${S.activeConvoProfile?.uid||''}')">${gi(S.activeConvoProfile?.name)}</div>
             <div style="flex:1;cursor:pointer" onclick="viewProfile('${S.activeConvoProfile?.uid||''}')">
@@ -1883,7 +1918,7 @@ function buildMessages(){
             }).join('')}
           </div>
           <!-- Input -->
-          <div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:center;background:var(--surface)">
+          <div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:center;background:var(--surface);flex-shrink:0">
             <input class="cmt-input" id="msg-input" placeholder="اكتب رسالة..." value="${escAttr(S.msgText||'')}"
               oninput="S.msgText=this.value"
               onkeydown="if(event.key==='Enter'&&!event.shiftKey){sendMessage();event.preventDefault()}"
