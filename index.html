@@ -16,7 +16,6 @@
 body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);transition:background .3s,color .3s}
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
 .app{display:flex;height:100vh;overflow:hidden}
-/* SIDEBAR */
 .sidebar{width:240px;background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;padding:20px 12px;gap:4px;flex-shrink:0;z-index:100}
 .sidebar-logo{display:flex;align-items:center;gap:10px;padding:8px 12px 20px;margin-bottom:8px}
 .logo-icon{width:38px;height:38px;background:linear-gradient(135deg,var(--accent),var(--warm));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#fff;font-family:'Syne',sans-serif}
@@ -31,16 +30,13 @@ body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);trans
 .avatar-ph{display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;border-radius:50%;flex-shrink:0}
 .user-mini-name{font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .user-mini-handle{font-size:11px;color:var(--text3)}
-/* MAIN */
 .main{flex:1;display:flex;overflow:hidden}
 .feed-area{flex:1;overflow-y:auto;padding:24px 20px}
 .right-panel{width:300px;padding:24px 16px;overflow-y:auto;flex-shrink:0;border-right:1px solid var(--border)}
-/* TOPBAR */
 .topbar{display:none;position:fixed;top:0;left:0;right:0;height:56px;background:var(--bg2);border-bottom:1px solid var(--border);align-items:center;justify-content:space-between;padding:0 16px;z-index:200}
 .bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:60px;background:var(--bg2);border-top:1px solid var(--border);align-items:center;justify-content:space-around;z-index:200}
 .bnav-item{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;padding:6px 12px;border-radius:10px;color:var(--text3);font-size:10px;font-weight:600;transition:all .2s}
 .bnav-item.active{color:var(--accent2)}.bnav-icon{font-size:22px}
-/* COMPOSER */
 .composer{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:16px;margin-bottom:16px}
 .composer-row{display:flex;gap:12px;align-items:flex-start}
 .composer textarea{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px 14px;color:var(--text);font-family:'Cairo',sans-serif;font-size:14px;resize:none;min-height:80px;outline:none;direction:rtl;transition:border-color .2s}
@@ -52,7 +48,6 @@ body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);trans
 .btn-primary{margin-right:auto;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;padding:8px 20px;border-radius:10px;font-weight:700;font-size:14px;cursor:pointer;font-family:'Cairo',sans-serif;transition:all .2s;box-shadow:0 4px 16px var(--accent-glow)}
 .btn-primary:hover{transform:translateY(-1px)}
 .btn-primary:disabled{opacity:.6;cursor:not-allowed;transform:none}
-/* POST */
 .post{background:var(--surface);border:1px solid var(--border);border-radius:18px;margin-bottom:14px;overflow:hidden;transition:border-color .2s}
 .post:hover{border-color:var(--border2)}
 .post-header{display:flex;align-items:center;gap:10px;padding:14px 16px 10px}
@@ -68,7 +63,6 @@ body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);trans
 .act-btn.liked{color:var(--red)}.act-btn.liked:hover{background:rgba(255,92,122,0.1)}
 .act-btn.reposted{color:var(--green)}
 .act-icon{font-size:17px}
-/* COMMENTS */
 .cmts{padding:0 14px 12px;border-top:1px solid var(--border)}
 .cmt{display:flex;gap:8px;margin-top:10px;align-items:flex-start}
 .cmt-body{flex:1;background:var(--bg3);border-radius:12px;padding:8px 12px;font-size:13px}
@@ -79,14 +73,12 @@ body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);trans
 .cmt-input:focus{border-color:var(--accent)}.cmt-input::placeholder{color:var(--text3)}
 .cmt-send{width:34px;height:34px;border-radius:50%;background:var(--accent);border:none;cursor:pointer;color:#fff;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .2s}
 .cmt-send:hover{transform:scale(1.05)}
-/* EXPLORE */
 .explore-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;border-radius:12px;overflow:hidden}
 .exp-item{aspect-ratio:1;overflow:hidden;cursor:pointer;position:relative;background:var(--bg3)}
 .exp-item img{width:100%;height:100%;object-fit:cover;transition:transform .3s}
 .exp-item:hover img{transform:scale(1.05)}
 .exp-ov{position:absolute;inset:0;background:rgba(0,0,0,0);display:flex;align-items:center;justify-content:center;transition:background .2s;gap:12px;font-size:14px;font-weight:700;color:#fff}
 .exp-item:hover .exp-ov{background:rgba(0,0,0,0.45)}
-/* MISC */
 .section-title{font-size:16px;font-weight:800;color:var(--text)}
 .trending-item{padding:12px 14px;border-radius:12px;cursor:pointer;transition:background .2s;display:flex;align-items:center;justify-content:space-between}
 .trending-item:hover{background:var(--bg3)}
@@ -103,13 +95,10 @@ body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);trans
 .chip.active,.chip:hover{background:var(--accent-glow);border-color:var(--accent);color:var(--accent2)}
 .profile-tab{padding:12px 20px;font-size:14px;font-weight:700;cursor:pointer;color:var(--text3);border-bottom:2px solid transparent;transition:all .2s}
 .profile-tab.active{color:var(--accent2);border-bottom-color:var(--accent)}
-/* TOAST */
 .toast{position:fixed;bottom:24px;right:50%;transform:translateX(50%);background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:10px 20px;font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,0.3);z-index:2000;animation:slideUp .3s ease;display:flex;align-items:center;gap:8px}
-/* LOADING */
 .loading-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:9999;flex-direction:column;gap:16px;transition:opacity .3s}
 .spinner{width:40px;height:40px;border:3px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
 .spinner-sm{width:20px;height:20px;border-width:2px;display:inline-block;vertical-align:middle}
-/* AUTH */
 .auth-screen{position:fixed;inset:0;background:var(--bg);display:flex;z-index:500;overflow:hidden}
 .auth-left{flex:1;background:linear-gradient(135deg,#1a1040,#0d0d1a,#1a0d2e);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;position:relative;overflow:hidden}
 .auth-right{width:440px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 40px;background:var(--surface);border-right:1px solid var(--border);overflow-y:auto}
@@ -122,13 +111,34 @@ body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);trans
 .auth-switch{font-size:13px;color:var(--text2);text-align:center}
 .auth-switch span{color:var(--accent2);cursor:pointer;font-weight:700}
 .error-msg{background:rgba(255,92,122,0.1);border:1px solid rgba(255,92,122,0.3);color:var(--red);padding:10px 14px;border-radius:10px;font-size:13px;margin-bottom:12px;text-align:center}
-/* MODAL OVERLAY */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(8px);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn .2s}
-/* ANIMATIONS */
+/* USER CARD */
+.user-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;display:flex;align-items:center;gap:12px;margin-bottom:10px;transition:border-color .2s}
+.user-card:hover{border-color:var(--border2)}
+.user-card-info{flex:1;min-width:0}
+.user-card-name{font-size:14px;font-weight:700;color:var(--text)}
+.user-card-handle{font-size:12px;color:var(--text3)}
+.user-card-bio{font-size:12px;color:var(--text2);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* FOLLOW BTN */
+.follow-btn{padding:7px 16px;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif;transition:all .2s;white-space:nowrap}
+.follow-btn.follow{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;box-shadow:0 2px 8px var(--accent-glow)}
+.follow-btn.unfollow{background:transparent;color:var(--text2);border:1px solid var(--border2)}
+.follow-btn.unfollow:hover{background:rgba(255,92,122,.1);color:var(--red);border-color:rgba(255,92,122,.4)}
+/* ADMIN BADGE */
+.admin-badge{background:linear-gradient(135deg,#ffd700,#ff8c00);color:#000;font-size:10px;font-weight:800;padding:2px 7px;border-radius:20px;margin-right:5px}
+/* SEARCH BAR */
+.search-bar{background:var(--bg3);border:1px solid var(--border);border-radius:24px;padding:10px 16px;display:flex;align-items:center;gap:10px;margin-bottom:20px;transition:border-color .2s}
+.search-bar:focus-within{border-color:var(--accent)}
+.search-bar input{flex:1;background:transparent;border:none;color:var(--text);font-family:'Cairo',sans-serif;font-size:14px;outline:none;direction:rtl}
+.search-bar input::placeholder{color:var(--text3)}
+/* ADMIN PANEL */
+.admin-panel{background:linear-gradient(135deg,rgba(255,215,0,.05),rgba(255,140,0,.05));border:1px solid rgba(255,215,0,.2);border-radius:18px;padding:20px;margin-bottom:16px}
+.admin-stat{background:var(--bg3);border-radius:12px;padding:14px;text-align:center}
+.admin-stat-num{font-size:28px;font-weight:900;font-family:'Syne',sans-serif;background:linear-gradient(135deg,var(--accent2),var(--warm));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.admin-stat-label{font-size:12px;color:var(--text3);margin-top:4px}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 @keyframes spin{to{transform:rotate(360deg)}}
-/* RESPONSIVE */
 @media(max-width:1100px){.right-panel{display:none}}
 @media(max-width:768px){
   .sidebar{display:none}.topbar{display:flex}.bottom-nav{display:flex}
@@ -162,8 +172,26 @@ const auth=firebase.auth();
 const db=firebase.firestore();
 
 // ============================
-// STATE
+// CLOUDINARY
 // ============================
+const CLOUDINARY_CLOUD='deelgvpv8';
+const CLOUDINARY_PRESET='waslaweb';
+
+async function uploadToCloudinary(file, folder='wasla'){
+  const fd=new FormData();
+  fd.append('file',file);
+  fd.append('upload_preset',CLOUDINARY_PRESET);
+  fd.append('folder',folder);
+  const res=await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`,{method:'POST',body:fd});
+  const data=await res.json();
+  if(data.secure_url)return data.secure_url;
+  throw new Error('Upload failed');
+}
+
+// ============================
+// CONSTANTS
+// ============================
+const ADMIN_EMAIL='hassenosos10@gmail.com';
 const COLORS=['#7c5cfc','#ff8c42','#ff6eb4','#2dd4a0','#5cb8ff','#ff5c7a','#ffa862'];
 const TRENDING=[
   {tag:'#ذكاء_اصطناعي',count:'٤٢.٣K منشور',num:'01'},
@@ -184,6 +212,9 @@ const EXPLORE_IMGS=[
   {url:'https://images.unsplash.com/photo-1494500764479-0c8f2919a3d8?w=300&q=80',l:'7.2K',c:'512'},
 ];
 
+// ============================
+// STATE
+// ============================
 let S={
   page:'feed', theme:'dark',
   currentUser:null, currentProfile:null,
@@ -194,6 +225,20 @@ let S={
   profileTab:'posts',
   authMode:'login', authError:'', authLoading:false,
   toast:null,
+  // follow
+  followingMap:{}, // uid -> true/false
+  // search
+  searchQuery:'', searchResults:[], searchLoading:false,
+  // view other profile
+  viewingProfile:null, viewingProfilePosts:[],
+  // followers/following modal
+  followModal:null, followModalList:[], followModalLoading:false,
+  // admin
+  adminStats:{users:0,posts:0},
+  adminUsers:[],
+  // image upload
+  composerImage:null, composerImagePreview:null, composerImageUploading:false,
+  editingProfile:false,
 };
 
 let unsubPosts=null;
@@ -204,6 +249,7 @@ let unsubPosts=null;
 const gi=n=>n?n.split(' ').map(x=>x[0]).join('').slice(0,2):'?';
 const fn=n=>{if(!n&&n!==0)return 0;if(n>=1000)return(n/1000).toFixed(1)+'K';return n};
 const rc=()=>COLORS[Math.floor(Math.random()*COLORS.length)];
+const isAdmin=()=>S.currentUser&&S.currentUser.email===ADMIN_EMAIL;
 function ta(ts){
   if(!ts)return'الآن';
   const d=ts.toDate?ts.toDate():new Date(ts);
@@ -227,8 +273,15 @@ auth.onAuthStateChanged(async user=>{
   if(user){
     S.currentUser=user;
     const doc=await db.collection('wasla_profiles').doc(user.uid).get();
-    S.currentProfile=doc.exists?doc.data():{name:user.displayName||'مستخدم',handle:user.email.split('@')[0],color:rc(),bio:'',followers:0,following:0};
+    if(doc.exists){
+      S.currentProfile=doc.data();
+    } else {
+      S.currentProfile={name:user.displayName||'مستخدم',handle:user.email.split('@')[0],color:rc(),bio:'',followers:0,following:0};
+    }
+    // Mark admin
+    if(user.email===ADMIN_EMAIL) S.currentProfile.isAdmin=true;
     loadPosts();
+    loadFollowing();
   } else {
     S.currentUser=null; S.currentProfile=null;
     S.posts=[]; S.loadingPosts=false;
@@ -247,6 +300,14 @@ function loadPosts(){
       r();
       refreshLikes();
     },err=>{console.error(err);S.loadingPosts=false;r();});
+}
+
+async function loadFollowing(){
+  if(!S.currentUser)return;
+  const snap=await db.collection('wasla_follows').where('followerId','==',S.currentUser.uid).get();
+  S.followingMap={};
+  snap.docs.forEach(d=>{S.followingMap[d.data().followingId]=true;});
+  r();
 }
 
 async function refreshLikes(){
@@ -289,10 +350,13 @@ async function doRegister(){
     const cred=await auth.createUserWithEmailAndPassword(email,pass);
     await cred.user.updateProfile({displayName:name});
     const color=rc();
-    const profile={name,handle,email,color,bio:'',followers:0,following:0,posts:0,createdAt:firebase.firestore.FieldValue.serverTimestamp()};
+    const isAdminUser=email===ADMIN_EMAIL;
+    const profile={name,handle,email,color,bio:'',followers:0,following:0,posts:0,isAdmin:isAdminUser,createdAt:firebase.firestore.FieldValue.serverTimestamp()};
     await db.collection('wasla_profiles').doc(cred.user.uid).set(profile);
     S.currentProfile=profile;
-    toast('أهلاً بك في Wasla - وصلة! 🎉');
+    // Send email verification
+    await cred.user.sendEmailVerification();
+    toast('أهلاً بك في Wasla! تم إرسال تأكيد للإيميل 📧');
   }catch(err){
     S.authLoading=false;
     S.authError=err.code==='auth/email-already-in-use'?'الإيميل ده مستخدم بالفعل ❌':'حدث خطأ، حاول مجدداً';
@@ -302,27 +366,41 @@ async function doRegister(){
 
 function doLogout(){auth.signOut();toast('تم تسجيل الخروج 👋');}
 
+// ============================
 // POST ACTIONS
+// ============================
 async function createPost(){
   const text=S.composerText.trim();
-  if(!text){toast('اكتب شيئاً أولاً ✍️','⚠️');return;}
+  if(!text&&!S.composerImage){toast('اكتب شيئاً أو أضف صورة ✍️','⚠️');return;}
   const p=S.currentProfile;
   const btn=document.getElementById('post-btn');
   if(btn)btn.disabled=true;
   try{
+    let imageUrl=null;
+    if(S.composerImage){
+      S.composerImageUploading=true;r();
+      imageUrl=await uploadToCloudinary(S.composerImage,'wasla/posts');
+      S.composerImageUploading=false;
+    }
     await db.collection('wasla_posts').add({
       userId:S.currentUser.uid,
       userName:p.name,
       userHandle:p.handle,
       userColor:p.color||'#7c5cfc',
+      userIsAdmin:p.isAdmin||false,
+      userPhotoURL:p.photoURL||null,
       text,
+      imageUrl:imageUrl||null,
       likes:0,comments:0,reposts:0,
       createdAt:firebase.firestore.FieldValue.serverTimestamp()
     });
     S.composerText='';
+    S.composerImage=null;
+    S.composerImagePreview=null;
     toast('تم نشر منشورك! 🎉');
-  }catch(e){toast('حدث خطأ، حاول مجدداً','❌');}
+  }catch(e){S.composerImageUploading=false;toast('حدث خطأ، حاول مجدداً','❌');}
   if(btn)btn.disabled=false;
+  r();
 }
 
 async function toggleLike(postId){
@@ -342,7 +420,6 @@ async function toggleLike(postId){
     await postRef.update({likes:firebase.firestore.FieldValue.increment(1)});
     S.likedPosts[postId]=true;
     if(idx>-1){S.posts[idx]._liked=true;S.posts[idx].likes=(S.posts[idx].likes||0)+1;}
-    // notif
     const post=S.posts[idx];
     if(post&&post.userId!==uid){
       db.collection('wasla_notifications').add({toUserId:post.userId,fromUserName:S.currentProfile.name,type:'like',text:'أعجب بمنشورك',read:false,createdAt:firebase.firestore.FieldValue.serverTimestamp()}).catch(()=>{});
@@ -388,19 +465,202 @@ async function deletePost(postId){
 }
 
 // ============================
+// IMAGE UPLOADS
+// ============================
+function pickPostImage(){
+  const inp=document.createElement('input');
+  inp.type='file';inp.accept='image/*';
+  inp.onchange=e=>{
+    const file=e.target.files[0];
+    if(!file)return;
+    if(file.size>10*1024*1024){toast('الصورة أكبر من 10MB','⚠️');return;}
+    S.composerImage=file;
+    const reader=new FileReader();
+    reader.onload=ev=>{S.composerImagePreview=ev.target.result;r();};
+    reader.readAsDataURL(file);
+  };
+  inp.click();
+}
+
+function removePostImage(){S.composerImage=null;S.composerImagePreview=null;r();}
+
+async function uploadProfilePhoto(){
+  const inp=document.createElement('input');
+  inp.type='file';inp.accept='image/*';
+  inp.onchange=async e=>{
+    const file=e.target.files[0];
+    if(!file)return;
+    toast('جاري رفع الصورة...','⏳');
+    try{
+      const url=await uploadToCloudinary(file,'wasla/avatars');
+      await db.collection('wasla_profiles').doc(S.currentUser.uid).update({photoURL:url});
+      S.currentProfile.photoURL=url;
+      toast('تم تحديث صورة البروفايل ✅');r();
+    }catch(e){toast('حدث خطأ في الرفع','❌');}
+  };
+  inp.click();
+}
+
+async function uploadCoverPhoto(){
+  const inp=document.createElement('input');
+  inp.type='file';inp.accept='image/*';
+  inp.onchange=async e=>{
+    const file=e.target.files[0];
+    if(!file)return;
+    toast('جاري رفع الغلاف...','⏳');
+    try{
+      const url=await uploadToCloudinary(file,'wasla/covers');
+      await db.collection('wasla_profiles').doc(S.currentUser.uid).update({coverURL:url});
+      S.currentProfile.coverURL=url;
+      toast('تم تحديث صورة الغلاف ✅');r();
+    }catch(e){toast('حدث خطأ في الرفع','❌');}
+  };
+  inp.click();
+}
+
+// Edit profile (bio + name)
+function openEditProfile(){S.editingProfile=true;r();}
+function closeEditProfile(){S.editingProfile=false;r();}
+async function saveProfile(){
+  const name=document.getElementById('edit-name')?.value?.trim();
+  const bio=document.getElementById('edit-bio')?.value?.trim();
+  if(!name){toast('الاسم مطلوب','⚠️');return;}
+  await db.collection('wasla_profiles').doc(S.currentUser.uid).update({name,bio:bio||''});
+  S.currentProfile.name=name;
+  S.currentProfile.bio=bio||'';
+  S.editingProfile=false;
+  toast('تم حفظ التعديلات ✅');r();
+}
+async function toggleFollow(targetUid, targetProfile){
+  if(!S.currentUser||targetUid===S.currentUser.uid)return;
+  const uid=S.currentUser.uid;
+  const followRef=db.collection('wasla_follows').doc(uid+'_'+targetUid);
+  const targetRef=db.collection('wasla_profiles').doc(targetUid);
+  const myRef=db.collection('wasla_profiles').doc(uid);
+  const already=S.followingMap[targetUid];
+  if(already){
+    await followRef.delete();
+    await targetRef.update({followers:firebase.firestore.FieldValue.increment(-1)});
+    await myRef.update({following:firebase.firestore.FieldValue.increment(-1)});
+    S.followingMap[targetUid]=false;
+    S.currentProfile.following=Math.max(0,(S.currentProfile.following||1)-1);
+    toast('تم إلغاء المتابعة');
+  } else {
+    await followRef.set({followerId:uid,followingId:targetUid,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+    await targetRef.update({followers:firebase.firestore.FieldValue.increment(1)});
+    await myRef.update({following:firebase.firestore.FieldValue.increment(1)});
+    S.followingMap[targetUid]=true;
+    S.currentProfile.following=(S.currentProfile.following||0)+1;
+    toast(`أنت الآن تتابع ${targetProfile?.name||''} ✅`);
+    // notification
+    db.collection('wasla_notifications').add({toUserId:targetUid,fromUserName:S.currentProfile.name,type:'follow',text:'بدأ يتابعك',read:false,createdAt:firebase.firestore.FieldValue.serverTimestamp()}).catch(()=>{});
+  }
+  // update viewing profile count if open
+  if(S.viewingProfile&&S.viewingProfile.uid===targetUid){
+    S.viewingProfile.followers=(S.viewingProfile.followers||0)+(already?-1:1);
+  }
+  r();
+}
+
+// ============================
+// SEARCH
+// ============================
+async function doSearch(){
+  const q=(S.searchQuery||'').trim().toLowerCase();
+  if(!q){S.searchResults=[];r();return;}
+  S.searchLoading=true;r();
+  try{
+    const snap=await db.collection('wasla_profiles').get();
+    S.searchResults=snap.docs
+      .map(d=>({uid:d.id,...d.data()}))
+      .filter(u=>{
+        const name=(u.name||'').toLowerCase();
+        const handle=(u.handle||'').toLowerCase();
+        return name.includes(q)||handle.includes(q);
+      })
+      .filter(u=>u.uid!==S.currentUser?.uid)
+      .slice(0,20);
+  }catch(e){S.searchResults=[];}
+  S.searchLoading=false;r();
+}
+
+// ============================
+// VIEW OTHER PROFILE
+// ============================
+async function viewProfile(uid){
+  if(uid===S.currentUser?.uid){nav('profile');return;}
+  S.page='viewprofile';
+  S.viewingProfile=null;
+  S.viewingProfilePosts=[];
+  r();
+  const doc=await db.collection('wasla_profiles').doc(uid).get();
+  if(!doc.exists){toast('المستخدم مش موجود','❌');return;}
+  S.viewingProfile={uid,...doc.data()};
+  const postsSnap=await db.collection('wasla_posts').where('userId','==',uid).orderBy('createdAt','desc').get();
+  S.viewingProfilePosts=postsSnap.docs.map(d=>({id:d.id,...d.data()}));
+  r();
+}
+
+// ============================
+// FOLLOWERS/FOLLOWING MODAL
+// ============================
+async function showFollowModal(uid, type){
+  S.followModal=type;
+  S.followModalList=[];
+  S.followModalLoading=true;
+  r();
+  const field=type==='followers'?'followingId':'followerId';
+  const otherField=type==='followers'?'followerId':'followingId';
+  const snap=await db.collection('wasla_follows').where(field,'==',uid).get();
+  const uids=snap.docs.map(d=>d.data()[otherField]);
+  const profiles=[];
+  for(const u of uids){
+    const d=await db.collection('wasla_profiles').doc(u).get();
+    if(d.exists)profiles.push({uid:u,...d.data()});
+  }
+  S.followModalList=profiles;
+  S.followModalLoading=false;
+  r();
+}
+
+function closeFollowModal(){S.followModal=null;S.followModalList=[];r();}
+
+// ============================
+// ADMIN
+// ============================
+async function loadAdminStats(){
+  const usersSnap=await db.collection('wasla_profiles').get();
+  const postsSnap=await db.collection('wasla_posts').get();
+  S.adminStats={users:usersSnap.size,posts:postsSnap.size};
+  S.adminUsers=usersSnap.docs.map(d=>({uid:d.id,...d.data()}));
+  r();
+}
+
+async function adminDeletePost(postId){
+  if(!confirm('حذف المنشور؟'))return;
+  await db.collection('wasla_posts').doc(postId).delete();
+  toast('تم الحذف 🗑️');
+}
+
+async function adminDeleteUser(uid){
+  if(!confirm('حذف هذا المستخدم من قاعدة البيانات؟'))return;
+  await db.collection('wasla_profiles').doc(uid).delete();
+  S.adminUsers=S.adminUsers.filter(u=>u.uid!==uid);
+  toast('تم حذف المستخدم 🗑️');r();
+}
+
+// ============================
 // RENDER
 // ============================
 function r(){
   document.getElementById('app').innerHTML=buildApp();
-  // scroll chat
-  const cm=document.getElementById('cms');
-  if(cm)cm.scrollTop=cm.scrollHeight;
 }
 
 function buildApp(){
   if(!S.currentUser)return buildAuth();
   return `
     ${S.toast?`<div class="toast">${S.toast.icon} ${S.toast.msg}</div>`:''}
+    ${S.followModal?buildFollowModal():''}
     <div class="app ${S.theme==='light'?'light':''}">
       ${buildSidebar()}${buildTopbar()}
       <div class="main">
@@ -408,7 +668,9 @@ function buildApp(){
           S.page==='feed'?buildFeed():
           S.page==='explore'?buildExplore():
           S.page==='notifications'?buildNotifs():
-          S.page==='profile'?buildProfile():''
+          S.page==='profile'?buildProfile():
+          S.page==='viewprofile'?buildViewProfile():
+          S.page==='admin'?buildAdmin():''
         }</div>`}
         ${S.page!=='messages'?buildRightPanel():''}
       </div>
@@ -417,7 +679,9 @@ function buildApp(){
   `;
 }
 
+// ============================
 // AUTH
+// ============================
 function buildAuth(){
   const isLogin=S.authMode==='login';
   return `
@@ -459,10 +723,19 @@ function buildAuth(){
   `;
 }
 
+// ============================
 // SIDEBAR
+// ============================
 function buildSidebar(){
   const p=S.currentProfile||{};
-  const nav=[{id:'feed',i:'🏠',l:'الرئيسية'},{id:'explore',i:'🔍',l:'استكشاف'},{id:'messages',i:'💬',l:'الرسائل'},{id:'notifications',i:'🔔',l:'الإشعارات'},{id:'profile',i:'👤',l:'حسابي'}];
+  const nav=[
+    {id:'feed',i:'🏠',l:'الرئيسية'},
+    {id:'explore',i:'🔍',l:'استكشاف'},
+    {id:'messages',i:'💬',l:'الرسائل'},
+    {id:'notifications',i:'🔔',l:'الإشعارات'},
+    {id:'profile',i:'👤',l:'حسابي'},
+  ];
+  if(isAdmin()) nav.push({id:'admin',i:'⚡',l:'لوحة الإدارة'});
   return `
     <nav class="sidebar">
       <div class="sidebar-logo">
@@ -475,7 +748,7 @@ function buildSidebar(){
         <div class="user-mini">
           <div class="avatar-ph" style="width:38px;height:38px;font-size:13px;background:${p.color||'var(--accent)'}" onclick="nav('profile')">${gi(p.name)}</div>
           <div style="flex:1;min-width:0" onclick="nav('profile')">
-            <div class="user-mini-name">${p.name||'مستخدم'}</div>
+            <div class="user-mini-name">${p.name||'مستخدم'} ${p.isAdmin?'<span class="admin-badge">أدمن</span>':''}</div>
             <div class="user-mini-handle">@${p.handle||''}</div>
           </div>
           <span style="cursor:pointer;font-size:18px;color:var(--text3)" title="تسجيل الخروج" onclick="doLogout()">🚪</span>
@@ -503,19 +776,30 @@ function buildBottomNav(){
   return `<nav class="bottom-nav">${items.map(n=>`<div class="bnav-item ${S.page===n.id?'active':''}" onclick="nav('${n.id}')"><div class="bnav-icon">${n.i}</div><div>${n.l}</div></div>`).join('')}</nav>`;
 }
 
+// ============================
 // FEED
+// ============================
 function buildFeed(){
   const p=S.currentProfile||{};
   return `
     <div class="composer">
       <div class="composer-row">
-        <div class="avatar-ph" style="width:40px;height:40px;font-size:13px;background:${p.color||'var(--accent)'}">${gi(p.name)}</div>
+        ${p.photoURL?`<img src="${p.photoURL}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;flex-shrink:0">`:
+          `<div class="avatar-ph" style="width:40px;height:40px;font-size:13px;background:${p.color||'var(--accent)'}">${gi(p.name)}</div>`}
         <textarea id="composer-textarea" placeholder="ما الذي يدور في ذهنك؟ ✍️" oninput="S.composerText=this.value">${S.composerText}</textarea>
       </div>
+      ${S.composerImagePreview?`
+        <div style="position:relative;margin-top:10px;border-radius:12px;overflow:hidden;max-height:240px">
+          <img src="${S.composerImagePreview}" style="width:100%;max-height:240px;object-fit:cover;display:block">
+          <button onclick="removePostImage()" style="position:absolute;top:8px;left:8px;background:rgba(0,0,0,.6);border:none;color:#fff;border-radius:50%;width:28px;height:28px;cursor:pointer;font-size:14px">✕</button>
+        </div>
+      `:''}
       <div class="composer-actions">
-        <button class="comp-btn">📷 صورة</button>
+        <button class="comp-btn" onclick="pickPostImage()">📷 صورة</button>
         <button class="comp-btn">😊 إيموجي</button>
-        <button class="btn-primary" id="post-btn" onclick="createPost()">نشر ✨</button>
+        <button class="btn-primary" id="post-btn" onclick="createPost()" ${S.composerImageUploading?'disabled':''}>
+          ${S.composerImageUploading?'<span class="spinner spinner-sm"></span> جاري الرفع...':'نشر ✨'}
+        </button>
       </div>
     </div>
     ${S.loadingPosts?`<div style="text-align:center;padding:48px;color:var(--text3)"><div class="spinner" style="margin:auto"></div><div style="margin-top:12px;font-size:14px">جاري تحميل المنشورات...</div></div>`
@@ -533,23 +817,27 @@ function buildFeed(){
   `;
 }
 
-function buildPost(post){
+function buildPost(post, allowDelete=true){
   const isMe=post.userId===S.currentUser?.uid;
   const liked=post._liked||S.likedPosts[post.id]||false;
   const cmtsOpen=S.openComments[post.id];
   const cmts=S.commentsData[post.id]||[];
+  const canDelete=allowDelete&&(isMe||isAdmin());
+  const avatar=post.userPhotoURL?
+    `<img src="${post.userPhotoURL}" style="width:42px;height:42px;border-radius:50%;object-fit:cover;cursor:pointer;flex-shrink:0" onclick="viewProfile('${post.userId}')">`:
+    `<div class="avatar-ph" style="width:42px;height:42px;font-size:13px;cursor:pointer;background:${post.userColor||'#7c5cfc'}" onclick="viewProfile('${post.userId}')">${gi(post.userName)}</div>`;
   return `
     <div class="post">
       <div class="post-header">
-        <div class="avatar-ph" style="width:42px;height:42px;font-size:13px;background:${post.userColor||'#7c5cfc'}">${gi(post.userName)}</div>
-        <div class="post-user">
-          <div class="post-name">${escHtml(post.userName)}</div>
+        ${avatar}
+        <div class="post-user" style="cursor:pointer" onclick="viewProfile('${post.userId}')">
+          <div class="post-name">${escHtml(post.userName)} ${post.userIsAdmin?'<span class="admin-badge">أدمن</span>':''}</div>
           <div class="post-handle">@${escHtml(post.userHandle||'')} · ${ta(post.createdAt)}</div>
         </div>
-        ${isMe?`<button class="btn-outline" style="font-size:12px;padding:4px 10px;color:var(--red);border-color:rgba(255,92,122,.4)" onclick="deletePost('${post.id}')">🗑️</button>`:''}
+        ${canDelete?`<button class="btn-outline" style="font-size:12px;padding:4px 10px;color:var(--red);border-color:rgba(255,92,122,.4)" onclick="deletePost('${post.id}')">🗑️</button>`:''}
       </div>
-      <div class="post-body">${escHtml(post.text).replace(/(#\S+)/g,'<span class="hashtag">$1</span>').replace(/\n/g,'<br>')}</div>
-      ${post.imageUrl?`<img class="post-media" src="${post.imageUrl}" loading="lazy" alt="">` : ''}
+      ${post.text?`<div class="post-body">${escHtml(post.text).replace(/(#\S+)/g,'<span class="hashtag">$1</span>').replace(/\n/g,'<br>')}</div>`:''}
+      ${post.imageUrl?`<img class="post-media" src="${post.imageUrl}" loading="lazy" alt="" style="cursor:pointer" onclick="window.open('${post.imageUrl}','_blank')">` : ''}
       <div class="post-actions">
         <button class="act-btn ${liked?'liked':''}" onclick="toggleLike('${post.id}')"><span class="act-icon">${liked?'❤️':'🤍'}</span><span>${fn(post.likes)}</span></button>
         <button class="act-btn" onclick="toggleComments('${post.id}')"><span class="act-icon">💬</span><span>${fn(post.comments)}</span></button>
@@ -565,7 +853,8 @@ function buildPost(post){
             </div>
           `).join('')}
           <div class="cmt-input-row">
-            <div class="avatar-ph" style="width:30px;height:30px;font-size:11px;background:${S.currentProfile?.color||'var(--accent)'}">${gi(S.currentProfile?.name)}</div>
+            ${S.currentProfile?.photoURL?`<img src="${S.currentProfile.photoURL}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;flex-shrink:0">`:
+              `<div class="avatar-ph" style="width:30px;height:30px;font-size:11px;background:${S.currentProfile?.color||'var(--accent)'}">${gi(S.currentProfile?.name)}</div>`}
             <input class="cmt-input" placeholder="اكتب تعليقاً..." value="${escAttr(S.newComment[post.id]||'')}" oninput="S.newComment['${post.id}']=this.value" onkeydown="if(event.key==='Enter')addComment('${post.id}')">
             <button class="cmt-send" onclick="addComment('${post.id}')">↑</button>
           </div>
@@ -575,24 +864,78 @@ function buildPost(post){
   `;
 }
 
-// EXPLORE
+// ============================
+// EXPLORE (with user search)
+// ============================
 function buildExplore(){
+  const postsWithImages=S.posts.filter(p=>p.imageUrl);
   return `
     <div class="page-header"><div class="page-title">استكشاف 🔍</div></div>
-    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:24px;padding:10px 16px;display:flex;align-items:center;gap:10px;margin-bottom:20px">
-      <span>🔍</span><input style="flex:1;background:transparent;border:none;color:var(--text);font-family:'Cairo',sans-serif;font-size:14px;outline:none;direction:rtl" placeholder="ابحث عن أشخاص أو هاشتاقات...">
+    <div class="search-bar">
+      <span>🔍</span>
+      <input placeholder="ابحث عن أشخاص أو هاشتاقات..." value="${escAttr(S.searchQuery)}"
+        oninput="S.searchQuery=this.value;doSearch()"
+        onkeydown="if(event.key==='Enter')doSearch()">
+      ${S.searchQuery?`<span style="cursor:pointer;color:var(--text3);font-size:16px" onclick="S.searchQuery='';S.searchResults=[];r()">✕</span>`:''}
     </div>
-    <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
-      ${['#ترند','#تقنية','#سفر','#قراءة','#فن','#رياضة'].map((t,i)=>`<div class="chip ${i===0?'active':''}">${t}</div>`).join('')}
-    </div>
-    <div style="font-size:16px;font-weight:800;margin-bottom:12px">🔥 محتوى رائج</div>
-    <div class="explore-grid" style="margin-bottom:24px">
-      ${EXPLORE_IMGS.map(img=>`<div class="exp-item"><img src="${img.url}" loading="lazy" alt=""><div class="exp-ov"><span>❤️ ${img.l}</span><span>💬 ${img.c}</span></div></div>`).join('')}
+
+    ${S.searchQuery?`
+      <div style="font-size:15px;font-weight:800;margin-bottom:12px">👤 نتائج البحث</div>
+      ${S.searchLoading?`<div style="text-align:center;padding:24px"><div class="spinner" style="margin:auto"></div></div>`
+      :S.searchResults.length===0?`<div style="text-align:center;padding:32px;color:var(--text3);font-size:14px">مفيش نتائج لـ "${escHtml(S.searchQuery)}"</div>`
+      :S.searchResults.map(u=>buildUserCard(u)).join('')}
+    `:`
+      <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
+        ${['#ترند','#تقنية','#سفر','#قراءة','#فن','#رياضة'].map((t,i)=>`<div class="chip ${i===0?'active':''}">${t}</div>`).join('')}
+      </div>
+      ${postsWithImages.length>0?`
+        <div style="font-size:16px;font-weight:800;margin-bottom:12px">🖼️ صور من المجتمع</div>
+        <div class="explore-grid" style="margin-bottom:24px">
+          ${postsWithImages.slice(0,9).map(post=>`
+            <div class="exp-item" onclick="viewProfile('${post.userId}')">
+              <img src="${post.imageUrl}" loading="lazy" alt="">
+              <div class="exp-ov">
+                <span>❤️ ${fn(post.likes||0)}</span>
+                <span>💬 ${fn(post.comments||0)}</span>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `:`
+        <div style="text-align:center;padding:48px;color:var(--text3)">
+          <div style="font-size:48px;margin-bottom:12px">🖼️</div>
+          <div style="font-size:15px;font-weight:700;color:var(--text2)">مفيش صور بعد</div>
+          <div style="font-size:13px;margin-top:6px">انشر منشور بصورة وهيظهر هنا</div>
+        </div>
+      `}
+    `}
+  `;
+}
+
+function buildUserCard(u, showFollowBtn=true){
+  const isFollowing=S.followingMap[u.uid];
+  const isMe=u.uid===S.currentUser?.uid;
+  return `
+    <div class="user-card">
+      <div class="avatar-ph" style="width:46px;height:46px;font-size:15px;cursor:pointer;background:${u.color||'#7c5cfc'}" onclick="viewProfile('${u.uid}')">${gi(u.name)}</div>
+      <div class="user-card-info" style="cursor:pointer" onclick="viewProfile('${u.uid}')">
+        <div class="user-card-name">${escHtml(u.name)} ${u.isAdmin?'<span class="admin-badge">أدمن</span>':''}</div>
+        <div class="user-card-handle">@${escHtml(u.handle||'')} · ${fn(u.followers||0)} متابع</div>
+        ${u.bio?`<div class="user-card-bio">${escHtml(u.bio)}</div>`:''}
+      </div>
+      ${showFollowBtn&&!isMe?`
+        <button class="follow-btn ${isFollowing?'unfollow':'follow'}"
+          onclick="toggleFollow('${u.uid}',${JSON.stringify({name:u.name}).replace(/"/g,'&quot;')})">
+          ${isFollowing?'إلغاء المتابعة':'متابعة'}
+        </button>
+      `:''}
     </div>
   `;
 }
 
+// ============================
 // NOTIFICATIONS
+// ============================
 function buildNotifs(){
   return `
     <div class="page-header"><div class="page-title">الإشعارات 🔔</div></div>
@@ -604,7 +947,9 @@ function buildNotifs(){
   `;
 }
 
+// ============================
 // MESSAGES
+// ============================
 function buildMessages(){
   return `
     <div style="flex:1;display:flex;overflow:hidden">
@@ -623,43 +968,183 @@ function buildMessages(){
   `;
 }
 
-// PROFILE
+// ============================
+// MY PROFILE
+// ============================
 function buildProfile(){
   const p=S.currentProfile||{};
-  const myPosts=S.posts.filter(pt=>pt.userId===S.currentUser?.uid);
+  const uid=S.currentUser?.uid;
+  const myPosts=S.posts.filter(pt=>pt.userId===uid);
+  return buildProfileLayout(p, uid, myPosts, true);
+}
+
+// ============================
+// VIEW OTHER PROFILE
+// ============================
+function buildViewProfile(){
+  if(!S.viewingProfile){
+    return `<div style="text-align:center;padding:60px"><div class="spinner" style="margin:auto"></div></div>`;
+  }
+  const p=S.viewingProfile;
+  const uid=p.uid;
+  return buildProfileLayout(p, uid, S.viewingProfilePosts, false);
+}
+
+function buildProfileLayout(p, uid, posts, isMyProfile){
+  const isFollowing=S.followingMap[uid];
+  const coverStyle=p.coverURL?`background:url('${p.coverURL}') center/cover no-repeat`:
+    `background:linear-gradient(135deg,${p.color||'#7c5cfc'},#ff8c42,#ff6eb4)`;
   return `
+    ${isMyProfile&&S.editingProfile?buildEditProfileModal():''}
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:18px;margin-bottom:16px;overflow:hidden">
-      <div style="height:180px;background:linear-gradient(135deg,${p.color||'#7c5cfc'},#ff8c42,#ff6eb4);position:relative">
-        <div style="position:absolute;bottom:-40px;right:24px">
-          <div class="avatar-ph" style="width:84px;height:84px;font-size:28px;border:4px solid var(--bg2);background:${p.color||'var(--accent)'}">${gi(p.name)}</div>
+      <div style="height:180px;${coverStyle};position:relative">
+        ${isMyProfile?`<button onclick="uploadCoverPhoto()" style="position:absolute;top:10px;left:10px;background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:10px;padding:5px 12px;font-size:12px;cursor:pointer;font-family:'Cairo',sans-serif;font-weight:700">📷 تغيير الغلاف</button>`:''}
+        ${!isMyProfile?`<button class="btn-outline" style="position:absolute;top:12px;left:12px;font-size:12px;padding:5px 12px;background:rgba(0,0,0,.3);border-color:rgba(255,255,255,.3);color:#fff" onclick="S.page='feed';r()">← رجوع</button>`:''}
+        <div style="position:absolute;bottom:-40px;right:24px;cursor:${isMyProfile?'pointer':'default'}" ${isMyProfile?'onclick="uploadProfilePhoto()"':''}>
+          ${p.photoURL?
+            `<div style="position:relative">
+              <img src="${p.photoURL}" style="width:84px;height:84px;border-radius:50%;object-fit:cover;border:4px solid var(--bg2)">
+              ${isMyProfile?`<div style="position:absolute;inset:0;background:rgba(0,0,0,.4);border-radius:50%;display:flex;align-items:center;justify-content:center;opacity:0;transition:.2s" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0"><span style="font-size:20px">📷</span></div>`:''}
+            </div>`:
+            `<div style="position:relative">
+              <div class="avatar-ph" style="width:84px;height:84px;font-size:28px;border:4px solid var(--bg2);background:${p.color||'var(--accent)'}">${gi(p.name)}</div>
+              ${isMyProfile?`<div style="position:absolute;bottom:0;left:0;background:var(--accent);border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:13px;border:2px solid var(--bg2)">📷</div>`:''}
+            </div>`
+          }
         </div>
-        <button class="btn-outline" style="position:absolute;top:12px;left:12px;font-size:12px;padding:5px 12px;background:rgba(0,0,0,.3);border-color:rgba(255,255,255,.3);color:#fff" onclick="toast('قريباً: تغيير الغلاف ✏️','ℹ️')">✏️ تعديل</button>
       </div>
       <div style="padding:52px 24px 20px">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px">
           <div>
-            <div style="font-size:22px;font-weight:800">${escHtml(p.name||'مستخدم')}</div>
+            <div style="font-size:22px;font-weight:800">${escHtml(p.name||'مستخدم')} ${p.isAdmin?'<span class="admin-badge">أدمن</span>':''}</div>
             <div style="font-size:14px;color:var(--text3);margin-top:2px">@${escHtml(p.handle||'')}</div>
             <div style="font-size:14px;color:var(--text2);margin-top:8px">${escHtml(p.bio||'لا توجد نبذة بعد')}</div>
           </div>
-          <button class="btn-outline" onclick="toast('قريباً: تعديل الحساب ✏️','ℹ️')">✏️ تعديل الحساب</button>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            ${isMyProfile?`<button class="btn-outline" onclick="openEditProfile()">✏️ تعديل الحساب</button>`:''}
+            ${!isMyProfile?`<button class="follow-btn ${isFollowing?'unfollow':'follow'}" onclick="toggleFollow('${uid}',{name:'${escAttr(p.name)}'})">
+              ${isFollowing?'إلغاء المتابعة ✓':'متابعة +'}
+            </button>`:''}
+          </div>
         </div>
         <div style="display:flex;gap:24px;margin-top:16px">
-          <div style="text-align:center"><div style="font-size:20px;font-weight:800;font-family:'Syne',sans-serif">${myPosts.length}</div><div style="font-size:12px;color:var(--text3)">منشور</div></div>
-          <div style="text-align:center"><div style="font-size:20px;font-weight:800;font-family:'Syne',sans-serif">${fn(p.followers||0)}</div><div style="font-size:12px;color:var(--text3)">متابع</div></div>
-          <div style="text-align:center"><div style="font-size:20px;font-weight:800;font-family:'Syne',sans-serif">${fn(p.following||0)}</div><div style="font-size:12px;color:var(--text3)">يتابع</div></div>
+          <div style="text-align:center"><div style="font-size:20px;font-weight:800;font-family:'Syne',sans-serif">${posts.length}</div><div style="font-size:12px;color:var(--text3)">منشور</div></div>
+          <div style="text-align:center;cursor:pointer" onclick="showFollowModal('${uid}','followers')">
+            <div style="font-size:20px;font-weight:800;font-family:'Syne',sans-serif">${fn(p.followers||0)}</div>
+            <div style="font-size:12px;color:var(--accent2)">متابع</div>
+          </div>
+          <div style="text-align:center;cursor:pointer" onclick="showFollowModal('${uid}','following')">
+            <div style="font-size:20px;font-weight:800;font-family:'Syne',sans-serif">${fn(p.following||0)}</div>
+            <div style="font-size:12px;color:var(--accent2)">يتابع</div>
+          </div>
         </div>
-        <div style="margin-top:14px"><button class="btn-outline" style="color:var(--red);border-color:rgba(255,92,122,.4)" onclick="doLogout()">🚪 تسجيل الخروج</button></div>
+        ${isMyProfile?`<div style="margin-top:14px"><button class="btn-outline" style="color:var(--red);border-color:rgba(255,92,122,.4)" onclick="doLogout()">🚪 تسجيل الخروج</button></div>`:''}
       </div>
     </div>
     <div style="display:flex;border-bottom:1px solid var(--border);margin-bottom:16px">
-      ${[['posts','📝 المنشورات'],['likes','❤️ الإعجابات']].map(([id,label])=>`<div class="profile-tab ${S.profileTab===id?'active':''}" onclick="S.profileTab='${id}';r()">${label}</div>`).join('')}
+      <div class="profile-tab active">📝 المنشورات</div>
     </div>
-    ${S.profileTab==='posts'?(myPosts.length===0?`<div style="text-align:center;color:var(--text3);padding:40px;font-size:14px">لا توجد منشورات بعد ✍️</div>`:myPosts.map(buildPost).join('')):`<div style="text-align:center;color:var(--text3);padding:40px;font-size:14px">قريباً ❤️</div>`}
+    ${posts.length===0?`<div style="text-align:center;color:var(--text3);padding:40px;font-size:14px">لا توجد منشورات بعد ✍️</div>`:posts.map(post=>buildPost(post,isMyProfile||isAdmin())).join('')}
   `;
 }
 
+function buildEditProfileModal(){
+  const p=S.currentProfile||{};
+  return `
+    <div class="overlay" onclick="if(event.target===this)closeEditProfile()">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;width:100%;max-width:420px;overflow:hidden">
+        <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+          <div style="font-size:16px;font-weight:800">✏️ تعديل الحساب</div>
+          <button class="btn-outline" style="padding:4px 12px;font-size:13px" onclick="closeEditProfile()">✕</button>
+        </div>
+        <div style="padding:20px">
+          <div class="input-group">
+            <label class="input-label">الاسم الكامل</label>
+            <input class="input-field" id="edit-name" value="${escAttr(p.name||'')}" placeholder="اسمك">
+          </div>
+          <div class="input-group">
+            <label class="input-label">نبذة شخصية</label>
+            <textarea class="input-field" id="edit-bio" placeholder="اكتب نبذة عنك..." style="min-height:80px;resize:none">${escHtml(p.bio||'')}</textarea>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:4px">
+            <button class="btn-primary" style="flex:1;justify-content:center" onclick="saveProfile()">💾 حفظ</button>
+            <button class="btn-outline" onclick="closeEditProfile()">إلغاء</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ============================
+// FOLLOW MODAL
+// ============================
+function buildFollowModal(){
+  return `
+    <div class="overlay" onclick="if(event.target===this)closeFollowModal()">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;width:100%;max-width:440px;max-height:80vh;display:flex;flex-direction:column;overflow:hidden">
+        <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+          <div style="font-size:16px;font-weight:800">${S.followModal==='followers'?'المتابعون 👥':'يتابع 👁️'}</div>
+          <button class="btn-outline" style="padding:4px 12px;font-size:13px" onclick="closeFollowModal()">✕</button>
+        </div>
+        <div style="overflow-y:auto;padding:12px">
+          ${S.followModalLoading?`<div style="text-align:center;padding:32px"><div class="spinner" style="margin:auto"></div></div>`
+          :S.followModalList.length===0?`<div style="text-align:center;padding:32px;color:var(--text3);font-size:14px">لا يوجد أحد هنا</div>`
+          :S.followModalList.map(u=>buildUserCard(u)).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ============================
+// ADMIN PANEL
+// ============================
+function buildAdmin(){
+  if(!isAdmin()) return `<div style="text-align:center;padding:60px;color:var(--red)">⛔ غير مسموح</div>`;
+  if(!S.adminStats.users) loadAdminStats();
+  return `
+    <div class="page-header">
+      <div class="page-title">⚡ لوحة الإدارة</div>
+      <span class="admin-badge" style="font-size:12px;padding:4px 10px">أدمن</span>
+    </div>
+    <div class="admin-panel">
+      <div style="font-size:14px;font-weight:800;margin-bottom:14px;color:var(--warm)">📊 إحصائيات</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+        <div class="admin-stat">
+          <div class="admin-stat-num">${S.adminStats.users||0}</div>
+          <div class="admin-stat-label">👤 مستخدم</div>
+        </div>
+        <div class="admin-stat">
+          <div class="admin-stat-num">${S.adminStats.posts||0}</div>
+          <div class="admin-stat-label">📝 منشور</div>
+        </div>
+      </div>
+      <button class="btn-primary" style="margin-right:0;width:100%;justify-content:center" onclick="loadAdminStats()">🔄 تحديث الإحصائيات</button>
+    </div>
+
+    <div style="font-size:15px;font-weight:800;margin-bottom:12px">👥 المستخدمون</div>
+    ${S.adminUsers.length===0?`<div style="text-align:center;padding:24px;color:var(--text3);font-size:14px">اضغط تحديث لتحميل المستخدمين</div>`
+    :S.adminUsers.map(u=>`
+      <div class="user-card">
+        <div class="avatar-ph" style="width:42px;height:42px;font-size:14px;background:${u.color||'#7c5cfc'}">${gi(u.name)}</div>
+        <div class="user-card-info">
+          <div class="user-card-name">${escHtml(u.name)} ${u.isAdmin?'<span class="admin-badge">أدمن</span>':''}</div>
+          <div class="user-card-handle">@${escHtml(u.handle||'')} · ${u.email||''}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">${fn(u.followers||0)} متابع · ${fn(u.following||0)} يتابع</div>
+        </div>
+        ${!u.isAdmin?`<button class="btn-outline" style="font-size:12px;padding:4px 10px;color:var(--red);border-color:rgba(255,92,122,.4)" onclick="adminDeleteUser('${u.uid}')">🗑️</button>`:''}
+      </div>
+    `).join('')}
+
+    <div style="font-size:15px;font-weight:800;margin:20px 0 12px">📝 كل المنشورات</div>
+    ${S.posts.map(post=>buildPost(post,true)).join('')}
+  `;
+}
+
+// ============================
 // RIGHT PANEL
+// ============================
 function buildRightPanel(){
   return `
     <div class="right-panel">
@@ -667,9 +1152,37 @@ function buildRightPanel(){
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:8px;margin-bottom:16px">
         ${TRENDING.map(t=>`<div class="trending-item"><div><div class="trending-tag">${t.tag}</div><div class="trending-count">${t.count}</div></div><div class="trending-num">${t.num}</div></div>`).join('')}
       </div>
-      <div style="text-align:center;font-size:11px;color:var(--text3)">Wasla - وصلة © ٢٠٢٥<br><span style="color:var(--accent2);cursor:pointer">الشروط</span> · <span style="color:var(--accent2);cursor:pointer">الخصوصية</span></div>
+      <div style="font-size:15px;font-weight:800;margin-bottom:12px">👤 اقتراحات للمتابعة</div>
+      <div id="suggestions-area">
+        <div style="text-align:center;padding:16px;color:var(--text3);font-size:13px">جاري التحميل...</div>
+      </div>
+      <div style="text-align:center;font-size:11px;color:var(--text3);margin-top:16px">Wasla - وصلة © ٢٠٢٥<br><span style="color:var(--accent2);cursor:pointer">الشروط</span> · <span style="color:var(--accent2);cursor:pointer">الخصوصية</span></div>
     </div>
   `;
+}
+
+// Load suggestions for right panel
+async function loadSuggestions(){
+  const area=document.getElementById('suggestions-area');
+  if(!area||!S.currentUser)return;
+  try{
+    const snap=await db.collection('wasla_profiles').limit(5).get();
+    const users=snap.docs
+      .map(d=>({uid:d.id,...d.data()}))
+      .filter(u=>u.uid!==S.currentUser.uid&&!S.followingMap[u.uid])
+      .slice(0,3);
+    if(users.length===0){area.innerHTML=`<div style="font-size:13px;color:var(--text3);text-align:center;padding:8px">مفيش اقتراحات دلوقتي</div>`;return;}
+    area.innerHTML=users.map(u=>`
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid var(--border)">
+        <div class="avatar-ph" style="width:36px;height:36px;font-size:12px;cursor:pointer;background:${u.color||'#7c5cfc'}" onclick="viewProfile('${u.uid}')">${gi(u.name)}</div>
+        <div style="flex:1;min-width:0;cursor:pointer" onclick="viewProfile('${u.uid}')">
+          <div style="font-size:13px;font-weight:700">${escHtml(u.name)}</div>
+          <div style="font-size:11px;color:var(--text3)">@${escHtml(u.handle||'')}</div>
+        </div>
+        <button class="follow-btn follow" style="font-size:12px;padding:5px 12px" onclick="toggleFollow('${u.uid}',{name:'${escAttr(u.name)}'});loadSuggestions()">+متابعة</button>
+      </div>
+    `).join('');
+  }catch(e){}
 }
 
 // ============================
@@ -677,9 +1190,19 @@ function buildRightPanel(){
 // ============================
 function escHtml(str){return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 function escAttr(str){return String(str||'').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
-function nav(page){S.page=page;r()}
-function toggleTheme(){S.theme=S.theme==='dark'?'light':'dark';r()}
-function switchAuth(mode){S.authMode=mode;S.authError='';r()}
+function nav(page){
+  S.page=page;
+  S.viewingProfile=null;
+  S.searchQuery='';
+  S.searchResults=[];
+  r();
+  if(page!=='messages') setTimeout(loadSuggestions, 300);
+}
+function toggleTheme(){S.theme=S.theme==='dark'?'light':'dark';r();}
+function switchAuth(mode){S.authMode=mode;S.authError='';r();}
+
+// Load suggestions on initial render
+setTimeout(()=>{if(S.currentUser)loadSuggestions();},1000);
 </script>
 </body>
 </html>
