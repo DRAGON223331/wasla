@@ -637,6 +637,8 @@ function toast(msg,icon='✅'){
 auth.onAuthStateChanged(async user=>{
   const el=document.getElementById('loading');
   if(el)el.style.display='none';
+  // Fire intro dismiss immediately — don't wait for data loads
+  if(window._introReady) window._introReady();
   if(user){
     S.currentUser=user;
     const doc=await db.collection('wasla_profiles').doc(user.uid).get();
@@ -660,7 +662,6 @@ auth.onAuthStateChanged(async user=>{
     S.posts=[]; S.loadingPosts=false;
   }
   r();
-  if(window._introReady) window._introReady();
 });
 
 function loadPosts(){
